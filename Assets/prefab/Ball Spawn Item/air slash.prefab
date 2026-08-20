@@ -5034,7 +5034,7 @@ MonoBehaviour:
   forceMagnitude: 1
   rb: {fileID: 8586374907619932469}
   Type: 3
-  DestroyAfter: 3
+  DestroyAfter: 1
 --- !u!114 &5084871435941750405
 MonoBehaviour:
   m_ObjectHideFlags: 0

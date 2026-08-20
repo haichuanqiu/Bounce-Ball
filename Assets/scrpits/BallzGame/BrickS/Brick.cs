@@ -55,7 +55,7 @@ namespace BallzGame.Bricks
         }
 
         // 被 Ball 调用
-        public void TakeDamage(int damage,Object sender ,Vector2 force = new Vector2())
+        public void TakeDamage(int damage,Object sender ,Vector2 force =new Vector2())
         {
             int originalDefense = DefencePoint;
             int remainingDamage = damage;

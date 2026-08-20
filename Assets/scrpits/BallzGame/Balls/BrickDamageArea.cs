@@ -59,12 +59,12 @@ namespace BallzGame.Balls.SpecialBalls
 					Vector2 forceDirection = other.transform.position - gameObject.transform.position;
 					forceDirection.Normalize();
 					force= forceDirection * ForceFromCenterMagnitude;
-					brick.TakeDamage(damage,force);
+					brick.TakeDamage(damage,this,force);
 				}
 				else if(ForceDirection != Vector2.zero)
 				{
 					force = ForceDirection;
-					brick.TakeDamage(damage,force);
+					brick.TakeDamage(damage,this,force);
 				}
 				else
 				{

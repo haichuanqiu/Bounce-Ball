@@ -47,7 +47,7 @@ public class BrickMovingDamageArea : MonoBehaviour
                 return;
             }
 
-            brick.TakeDamage(damage+GameManager.Instance.BallExtraDamageController.GetExtraDamage(Type), rb.linearVelocity*forceMagnitude);
+            brick.TakeDamage(damage+GameManager.Instance.BallExtraDamageController.GetExtraDamage(Type),this, rb.linearVelocity*forceMagnitude);
         }
 
     }
