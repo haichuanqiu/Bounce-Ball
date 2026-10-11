@@ -114,8 +114,8 @@ namespace BallzGame.Bricks
             }
 
             GameManager.Instance.feverController.AddFeverPoints(1);
+            GameManager.Instance.AddCurrentResultPoints(OriginalHp);
             GameManager.Instance.CurrentResult.BricksCount += 1;
-            GameManager.Instance.CurrentResult.Points += OriginalHp;
             OnDestroy?.Invoke();
 
             Destroy(gameObject);

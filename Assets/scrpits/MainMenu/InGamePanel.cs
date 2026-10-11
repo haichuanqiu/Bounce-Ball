@@ -33,6 +33,7 @@ namespace GameMeta
 		public	TMP_Text WaveDisplay;
 		public BallsDisplay BallsDisplay;
 		public Button RefreshShopItem;
+		public TMP_Text CurrentScore;
 		[SerializeField]private EventTrigger shopButton;
 		[SerializeField]private GameObject ballzGameUI;
 

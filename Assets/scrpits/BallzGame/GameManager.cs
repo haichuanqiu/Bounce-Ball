@@ -77,6 +77,7 @@ namespace BallzGame.Managers
             MainMenu.Instance.Goto(MainMenu.CurrentPanel.InGame);
             CurrentResult=new();
             grid = new Brick[width, height];
+            MainMenu.Instance.InGamePanel.CurrentScore.text = "Score:  "+ CurrentResult.Points.ToString();
             gameLoop=StartCoroutine(GameLoop());
         }
 
@@ -477,6 +478,12 @@ namespace BallzGame.Managers
                     0.8f
                 );
             }
+        }
+
+        public void AddCurrentResultPoints(int increment)
+        {
+            CurrentResult.Points += increment;
+            MainMenu.Instance.InGamePanel.CurrentScore.text = "Score:  "+CurrentResult.Points.ToString();
         }
     }
 
