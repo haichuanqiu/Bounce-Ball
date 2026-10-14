@@ -29,6 +29,10 @@ namespace BallzGame.Balls
 		}
 		public void Reset()
 		{
+			for (int i = 0; i < extraBottomBounceTime.Count; i++)
+			{
+				extraBottomBounceTime[i] = 0;
+			}
 			for (int i = 0; i < extraDamage.Count; i++)
 			{
 				extraDamage[i] = 0;

@@ -755,6 +755,7 @@ namespace BallzGame.Managers
 
             if (InitialBall != null)
             {
+                BallCount = 1;
                 ballPrefabs.Add(
                     InitialBall
                 );

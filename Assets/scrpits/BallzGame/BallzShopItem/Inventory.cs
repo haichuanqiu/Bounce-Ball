@@ -10,6 +10,21 @@ namespace BallzGame.InventorySystem
 		// Inventory 里当前拥有的 Item
 		private List<ShopItem> items = new List<ShopItem>();
 
+		public void Clear()
+		{
+			foreach (ShopItem item in items)
+			{
+				if (item == null)
+					continue;
+
+				while (item.Count > 0)
+					item.OnRemoved();
+
+				Destroy(item.gameObject);
+			}
+			items.Clear();
+		}
+
 		public void AddItemToInventory(ShopItem item)
 		{
 			if (item == null)

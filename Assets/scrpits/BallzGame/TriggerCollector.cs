@@ -22,10 +22,7 @@ namespace Utils
 
         private void OnTriggerExit2D(Collider2D other)
         {
-            if (other.isTrigger)
-            {
-                Colliders.Remove(other);
-            }
+            Colliders.Remove(other);
         }
     }
 }

@@ -169,6 +169,7 @@ namespace BallzGame.Managers
 
         private void ResetAllController()
         {
+            inventory.Clear();
             feverController.Reset();
             launcher.Reset();
             BallExtraDamageController.Reset();

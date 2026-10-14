@@ -245,7 +245,7 @@ MonoBehaviour:
   ForceDirection: {x: 25, y: 0}
   ForceFromCenterMagnitude: 0
   DestroyAfter: -1
-  Type: 4
+  Type: 5
 --- !u!1 &6079818137202548700
 GameObject:
   m_ObjectHideFlags: 0

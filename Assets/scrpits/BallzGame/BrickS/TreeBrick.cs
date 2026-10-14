@@ -16,8 +16,7 @@ namespace BallzGame.Bricks.SpecialBricks
         public float DefenseInterval;
         public float WaitInterval;
         Coroutine AddDefenseRoutine;
-
-        private bool activated;
+        private Coroutine effectRoutine;
 
         public IEnumerator BrickEffect()
         {
@@ -28,6 +27,7 @@ namespace BallzGame.Bricks.SpecialBricks
 
                 // 等待这个协程执行完
                 yield return AddDefenseRoutine;
+                AddDefenseRoutine = null;
 
             }
         }
@@ -51,16 +51,23 @@ namespace BallzGame.Bricks.SpecialBricks
 
         public void StartEffect()
         {
-            StartCoroutine(BrickEffect());
+            if (effectRoutine == null && isActiveAndEnabled)
+                effectRoutine = StartCoroutine(BrickEffect());
         }
 
         public void Stop()
         {
-            if (activated)
+            if (effectRoutine != null)
+            {
+                StopCoroutine(effectRoutine);
+                effectRoutine = null;
+            }
+            if (AddDefenseRoutine != null)
             {
                 StopCoroutine(AddDefenseRoutine);
-                RemoveDefense();
+                AddDefenseRoutine = null;
             }
+            RemoveDefense();
         }
 
         public IEnumerator AddingDefense()
@@ -68,10 +75,8 @@ namespace BallzGame.Bricks.SpecialBricks
             TreeIcon.gameObject.SetActive(true);
             yield return new WaitForFixedUpdate();
             AddDefense();
-            activated = true;
             yield return new WaitForSeconds(DefenseInterval);
             RemoveDefense();
-            activated = false;
         }
 
         void AddDefense()
@@ -79,9 +84,10 @@ namespace BallzGame.Bricks.SpecialBricks
 
             foreach (var VARIABLE in triggers.Colliders)
             {
-
-                var script = VARIABLE?.GetComponent<Brick>();
-                if (script)
+                if (!VARIABLE)
+                    continue;
+                var script = VARIABLE.GetComponent<Brick>();
+                if (script && !SurroundingBricks.Contains(script))
                 {
                     script.SetDefence(script.DefencePoint + 3);
                     SurroundingBricks.Add(script);
@@ -91,12 +97,13 @@ namespace BallzGame.Bricks.SpecialBricks
 
         private void OnDestroy()
         {
-            RemoveDefense();
+            Stop();
         }
 
         void RemoveDefense()
         {
-            TreeIcon.gameObject.SetActive(false);
+            if (TreeIcon != null)
+                TreeIcon.gameObject.SetActive(false);
             foreach (var brick in SurroundingBricks)
             {
                 if (brick != null)

@@ -13,8 +13,7 @@ public class BlackHoleBrick : SpecialBrick
         [SerializeField]private float DefenseInterval;
         [SerializeField]private float WaitInterval;
         Coroutine AddDefenseRoutine;
-
-        private bool activated;
+        private Coroutine effectRoutine;
 
         public IEnumerator BrickEffect()
         {
@@ -25,6 +24,7 @@ public class BlackHoleBrick : SpecialBrick
 
                 // 等待这个协程执行完
                 yield return AddDefenseRoutine;
+                AddDefenseRoutine = null;
 
             }
         }
@@ -48,16 +48,23 @@ public class BlackHoleBrick : SpecialBrick
 
         public void StartEffect()
         {
-            StartCoroutine(BrickEffect());
+            if (effectRoutine == null && isActiveAndEnabled)
+                effectRoutine = StartCoroutine(BrickEffect());
         }
 
         public void Stop()
         {
-            if (activated)
+            if (effectRoutine != null)
+            {
+                StopCoroutine(effectRoutine);
+                effectRoutine = null;
+            }
+            if (AddDefenseRoutine != null)
             {
                 StopCoroutine(AddDefenseRoutine);
-                RemoveDefense();
+                AddDefenseRoutine = null;
             }
+            RemoveDefense();
         }
 
         public IEnumerator AddingDefense()
@@ -65,10 +72,8 @@ public class BlackHoleBrick : SpecialBrick
             BlackholeSprite.gameObject.SetActive(true);
             yield return new WaitForFixedUpdate();
             AddDefense();
-            activated = true;
             yield return new WaitForSeconds(DefenseInterval);
             RemoveDefense();
-            activated = false;
         }
 
         void AddDefense()
@@ -77,9 +82,9 @@ public class BlackHoleBrick : SpecialBrick
             foreach (var VARIABLE in triggers.Colliders)
             {
                 if(!VARIABLE)
-                    return;
-                var script = VARIABLE?.GetComponent<Brick>();
-                if (script)
+                    continue;
+                var script = VARIABLE.GetComponent<Brick>();
+                if (script && !SurroundingBricks.Contains(script))
                 {
                     script.AddStatus(Brick.BrickStatus.DisableEffect);
                     SurroundingBricks.Add(script);
@@ -89,12 +94,13 @@ public class BlackHoleBrick : SpecialBrick
 
         private void OnDestroy()
         {
-            RemoveDefense();
+            Stop();
         }
 
         void RemoveDefense()
         {
-            BlackholeSprite.gameObject.SetActive(false);
+            if (BlackholeSprite != null)
+                BlackholeSprite.gameObject.SetActive(false);
             foreach (var brick in SurroundingBricks)
             {
                 if (brick != null)

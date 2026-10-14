@@ -53,7 +53,7 @@ namespace GameMeta
 					GainBallPanel.SetActive(false);
 				}
 			);
-			RefreshShopItem.onClick.AddListener(GameManager.Instance.shopController. RefreshShopItems);
+			RefreshShopItem.onClick.AddListener(GameManager.Instance.shopController.PlayerRefreshItem);
 			AddShopButtonEvents();
 		}
 		private Coroutine longPressCoroutine;
@@ -154,7 +154,7 @@ namespace GameMeta
 					// 扣钱（你可以自己加价格判断）
 					var shop = GameManager.Instance.shopController;
 
-					if (shop.CurrentCoin <= 0)
+					if (shop.CurrentCoin < data.Price || !data.Spawnable())
 						return;
 
 					shop.CurrentCoin -= data.Price;

@@ -58,7 +58,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2908519102833354632, guid: 3b2648a7d959cc94bb6c22c5e3e91fe6, type: 3}
       propertyPath: Type
-      value: 5
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 2908519102833354632, guid: 3b2648a7d959cc94bb6c22c5e3e91fe6, type: 3}
       propertyPath: ForceDirection.x
