@@ -25,7 +25,14 @@ namespace BallzGame.Managers.Shop
         }
 
         [SerializeField] private int _currentCoin;
+        [SerializeField, Min(0)] private int startingCoin = 0;
         public Image fillImage;
+
+        public void ResetCoins()
+        {
+            CurrentCoin = Mathf.Max(0, startingCoin);
+            UpdateUI();
+        }
 
         // 抽卡球列表（带概率权重）
         public List<BallProbability> GachaBalls;
@@ -42,6 +49,56 @@ namespace BallzGame.Managers.Shop
 
         private int totalGachaProbability;
         private int totalItemProbability;
+
+        [SerializeField, Min(6)] private int launchesPerFreeDraw = 6;
+        public int LaunchesPerFreeDraw => Mathf.Max(6, launchesPerFreeDraw);
+        private int launchesSinceFreeDraw;
+        public int FreeDrawCount { get; private set; }
+        public int LaunchesUntilFreeDraw => LaunchesPerFreeDraw - launchesSinceFreeDraw;
+
+        public void ResetFreeDraws()
+        {
+            FreeDrawCount = 0;
+            launchesSinceFreeDraw = 0;
+            UpdateFreeDrawUI();
+        }
+
+        public void OnLaunchCompleted()
+        {
+            launchesSinceFreeDraw++;
+            if (launchesSinceFreeDraw >= LaunchesPerFreeDraw)
+            {
+                launchesSinceFreeDraw = 0;
+                FreeDrawCount++;
+                GameManager.DoFreeDrawFloatText();
+            }
+            UpdateFreeDrawUI();
+        }
+
+        public void ClaimFreeDraw()
+        {
+            if (FreeDrawCount <= 0 || !GameManager.Instance.CanClaimFreeDraw)
+                return;
+
+            var resultBalls = RollBalls(6);
+            if (resultBalls == null)
+                return;
+
+            FreeDrawCount--;
+            GrantBalls(resultBalls);
+        }
+
+        public void UpdateFreeDrawUI()
+        {
+            var panel = MainMenu.Instance.InGamePanel;
+            if (panel.FreeDrawCountText != null)
+                panel.FreeDrawCountText.text = "X" + FreeDrawCount;
+            if (panel.LaunchesUntilFreeDrawText != null)
+                panel.LaunchesUntilFreeDrawText.text =  LaunchesUntilFreeDraw.ToString();
+            if (panel.FreeDrawButton != null)
+                panel.FreeDrawButton.interactable = FreeDrawCount > 0 && GameManager.Instance.CanClaimFreeDraw;
+            UpdateGachaButton();
+        }
 
         private void Start()
         {
@@ -123,6 +180,11 @@ namespace BallzGame.Managers.Shop
         /// </summary>
         Ball GetRandomBallData()
         {
+            // Read the current weights so rewards also work before Start runs.
+            totalGachaProbability = 0;
+            foreach (var item in GachaBalls)
+                totalGachaProbability += item.Probability;
+
             int random = Random.Range(0, totalGachaProbability);
 
             int current = 0;
@@ -230,7 +292,9 @@ namespace BallzGame.Managers.Shop
 
         public void UpdateGachaButton()
         {
-            MainMenu.Instance.InGamePanel.ShopMultiplePull.interactable = CurrentCoin >= Gacha6Price;
+            MainMenu.Instance.InGamePanel.ShopMultiplePull.interactable = FreeDrawCount > 0
+                ? GameManager.Instance.CanClaimFreeDraw
+                : CurrentCoin >= Gacha6Price;
             MainMenu.Instance.InGamePanel.ShopOnePull.interactable = CurrentCoin >= Gacha1Price;
         }
 
@@ -247,6 +311,11 @@ namespace BallzGame.Managers.Shop
         }
         public void DoGacha6()
         {
+            if (FreeDrawCount > 0)
+            {
+                ClaimFreeDraw();
+                return;
+            }
             DoGacha(6, Gacha6Price);
         }
 
@@ -263,18 +332,64 @@ namespace BallzGame.Managers.Shop
                 return;
             }
 
+            var resultBalls = RollBalls(count);
+            if (resultBalls == null)
+                return;
+
             CurrentCoin -= price;
+            GrantBalls(resultBalls);
+        }
+
+        public bool GrantRandomBalls(int count)
+        {
+            var resultBalls = RollBalls(count);
+            if (resultBalls == null)
+                return false;
+
+            GrantBalls(resultBalls);
+            return true;
+        }
+
+        private List<Ball> RollBalls(int count)
+        {
+            if (count <= 0 || GachaBalls == null || GachaBalls.Count == 0)
+            {
+                Debug.LogError("Cannot draw balls: the gacha pool is empty or the count is invalid.");
+                return null;
+            }
+
+            int weight = 0;
+            foreach (var item in GachaBalls)
+            {
+                if (item == null || item.Ball == null || item.Ball.Data == null || item.Probability < 0)
+                {
+                    Debug.LogError("Cannot draw balls: the gacha pool contains an invalid entry.");
+                    return null;
+                }
+                weight += item.Probability;
+            }
+            if (weight <= 0)
+            {
+                Debug.LogError("Cannot draw balls: the total gacha weight must be positive.");
+                return null;
+            }
 
             List<Ball> resultBalls = new List<Ball>();
-            List<BallData> resultDatas = new List<BallData>();
 
             for (int i = 0; i < count; i++)
             {
                 Ball ball = GetRandomBallData();
 
                 resultBalls.Add(ball);
-                resultDatas.Add(ball.Data);
             }
+            return resultBalls;
+        }
+
+        private void GrantBalls(List<Ball> resultBalls)
+        {
+            List<BallData> resultDatas = new List<BallData>();
+            foreach (var ball in resultBalls)
+                resultDatas.Add(ball.Data);
 
             GameManager.Instance.launcher.AddBalls(resultBalls);
 
@@ -286,6 +401,7 @@ namespace BallzGame.Managers.Shop
 
         private void UpdateUI()
         {
+            UpdateFreeDrawUI();
             if (GoldText != null)
                 GoldText.text = CurrentCoin.ToString();
 

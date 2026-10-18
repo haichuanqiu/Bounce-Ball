@@ -47,7 +47,7 @@ MonoBehaviour:
   Name: Big Ball Crit Chance+
   Description: Big Ball Crit Chance +5
   Icon: {fileID: 21300000, guid: 2760ef8d31ddf444ab6f7b884636a503, type: 3}
-  Price: 2
+  Price: 27
   Count: 0
   maxAmount: 10
   target: 3

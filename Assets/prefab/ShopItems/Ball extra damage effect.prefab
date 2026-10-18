@@ -47,7 +47,7 @@ MonoBehaviour:
   Name: Ball Damage+
   Description: Normal Ball Damage +1
   Icon: {fileID: 21300000, guid: abf6b9a15bc6b4680aa7ec644f2dfa56, type: 3}
-  Price: 2
+  Price: 27
   Count: 0
   maxAmount: 5
   target: 1

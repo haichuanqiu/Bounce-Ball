@@ -12,6 +12,19 @@ namespace BallzGame.Managers
         private int totalProbability;
         public float SpawnPossibility=0.7f;
 
+        [Header("HP balance")]
+        [Tooltip("Provisional q: average effective damage per ball per launch without purchased buffs. Replace with measured data.")]
+        [SerializeField, Min(0.01f)] private float averageDamagePerBall = 3f;
+        [Tooltip("Reference normal-wave density. Keep fixed when special waves change SpawnPossibility.")]
+        [SerializeField, Range(0.01f, 1f)] private float normalSpawnPossibility = 0.7f;
+        // Retain old serialized data; the continuous curve replaces stage-based pressure.
+        [SerializeField, HideInInspector] private int wavesPerPressureStage = 9;
+        [SerializeField, HideInInspector] private float[] pressureCoefficients = { 0.8f, 0.9f, 1f, 1.1f, 1.2f };
+        [SerializeField, Min(0.01f)] private float startingPressure = 0.8f;
+        [SerializeField, Min(0f)] private float pressureGrowthPerWave = 0.025f;
+        [Tooltip("Second derivative of pressure per wave. Defaults target pressure 1.5 at wave 13 and 3 at wave 25.")]
+        [SerializeField, Min(0f)] private float pressureAcceleration = 1f / 180f;
+
         void Start()
         {
             NormalizedBrickPossibility();
@@ -98,16 +111,16 @@ namespace BallzGame.Managers
                         );
 
                         bricks.Add(script);
-                        var hp = 0f;
+                        int hp;
                         if (NextBricksHP.Count==width)
                         {
-                            hp =NextBricksHP[x];
+                            hp = Mathf.Max(1, NextBricksHP[x]);
                         }
                         else
                         {
-                            hp = Random.Range(1f, 1.5f) * level;
+                            hp = GetRandomHPByLevel(level, width);
                         }
-                        script.Init((int)hp);
+                        script.Init(hp);
                     }
                     else
                     {
@@ -129,7 +142,7 @@ namespace BallzGame.Managers
                         );
 
                         bricks.Add(script);
-                        script.Init((int)GetRandomHPByLevel( level));
+                        script.Init(GetRandomHPByLevel(level, width));
                     }
                     else
                     {
@@ -149,7 +162,37 @@ namespace BallzGame.Managers
         }
         public int GetRandomHPByLevel(int level)
         {
-                return (int)(Random.Range(1f, 1.5f) * level);;
+            int width = GameManager.Instance != null ? GameManager.Instance.width : 13;
+            return GetRandomHPByLevel(level, width);
+        }
+
+        public float GetAverageHPByLevel(int level, int width)
+        {
+            int wave = Mathf.Max(1, level);
+            float pressure = GetPressureByLevel(wave);
+
+            // Scheduled ball growth, independent of actual claims, random results or purchased buffs.
+            int rewardInterval = GameManager.Instance != null && GameManager.Instance.shopController != null
+                ? GameManager.Instance.shopController.LaunchesPerFreeDraw : 6;
+            float scheduledBallCount = 6f + 6f * ((wave - 1) / rewardInterval);
+            float expectedBrickCount = Mathf.Max(1, width) * Mathf.Clamp(normalSpawnPossibility, 0.01f, 1f);
+            return Mathf.Max(1f, Mathf.Max(0.01f, pressure) *
+                Mathf.Max(0.01f, averageDamagePerBall) * scheduledBallCount / expectedBrickCount);
+        }
+
+        public float GetPressureByLevel(int level)
+        {
+            float elapsedWaves = Mathf.Max(0, level - 1);
+            return Mathf.Max(0.01f, startingPressure) +
+                Mathf.Max(0f, pressureGrowthPerWave) * elapsedWaves +
+                0.5f * Mathf.Max(0f, pressureAcceleration) * elapsedWaves * elapsedWaves;
+        }
+
+        public int GetRandomHPByLevel(int level, int width)
+        {
+            float averageHP = GetAverageHPByLevel(level, width);
+            int lowerHP = Mathf.FloorToInt(averageHP);
+            return lowerHP + (Random.value < averageHP - lowerHP ? 1 : 0);
         }
     }
 

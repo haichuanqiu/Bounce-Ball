@@ -55,7 +55,14 @@ namespace BallzGame.Managers
         [SerializeField]private FloatText brickShieldFloatText;
         [SerializeField]private FloatText brickDamageFloatText;
 
-         [Header("events")]
+        [SerializeField] private FloatText freeDrawFloatText;
+        public Transform FreeDrawFloatTextPosition;
+
+        public bool CanClaimFreeDraw => state == State.WaitForFeverOrLaunchInput &&
+            !launcher.HasInput && !MainMenu.Instance.InGamePanel.IsShowingGainBalls;
+
+          [SerializeField] private GameObject healEffect;
+          [Header("events")]
         public UnityEvent BeforeRowSpawn;
 
         private void Awake()
@@ -69,11 +76,16 @@ namespace BallzGame.Managers
         }
         public void NewGame()
         {
-            ResetAllController();
             if (gameLoop!=null)
             {
                 StopCoroutine(gameLoop);
             }
+            ResetAllController();
+            level = 1;
+            state = State.TrySpawnRow;
+            shopController.ResetCoins();
+            MainMenu.Instance.InGamePanel.WaveDisplay.text = "Wave:   " + level;
+            MainMenu.Instance.InGamePanel.WaveDisplay.color = Color.white;
             MainMenu.Instance.Goto(MainMenu.CurrentPanel.InGame);
             CurrentResult=new();
             grid = new Brick[width, height];
@@ -84,6 +96,13 @@ namespace BallzGame.Managers
         private Coroutine gameLoop;
         IEnumerator GameLoop()
         {
+            // Confirm the opening reward before spawning bricks or accepting aim input.
+            if (!shopController.GrantRandomBalls(6))
+                yield break;
+
+            yield return new WaitUntil(() => !MainMenu.Instance.InGamePanel.IsShowingGainBalls);
+            yield return null;
+
             state = State.TrySpawnRow;
             MainMenu.Instance.InGamePanel.WaveDisplay.text = "Wave:   "+level.ToString();
             while (true)
@@ -94,6 +113,7 @@ namespace BallzGame.Managers
                         shopController.RefreshShopItems();
                         launcher.WaitForInput();
                         feverController.WaitForInput();
+                        shopController.UpdateFreeDrawUI();
                         yield return new WaitUntil(() => launcher.HasInput || feverController.FeverClicked);
                         if (launcher.HasInput)
                         {
@@ -105,10 +125,12 @@ namespace BallzGame.Managers
                         }
                         feverController.StopListenToInput();
                         launcher.StopListenToInput();
+                        shopController.UpdateFreeDrawUI();
                         break;
                     case State.ShootBall:
                         yield return new WaitForEndOfFrame();
                         yield return StartCoroutine( launcher.Launch() );
+                        shopController.OnLaunchCompleted();
                         state = State.TrySpawnRow;
                         level++;
                         MainMenu.Instance.InGamePanel.WaveDisplay.text = "Wave:   "+level.ToString();
@@ -141,6 +163,7 @@ namespace BallzGame.Managers
                         }
                         break;
                     case State.GameOver:
+                        shopController.UpdateFreeDrawUI();
                         MainMenu.Instance.InGamePanel.DieSubPanel.SetActive(true);
                         yield break;
 
@@ -173,6 +196,19 @@ namespace BallzGame.Managers
             feverController.Reset();
             launcher.Reset();
             BallExtraDamageController.Reset();
+            shopController.ResetFreeDraws();
+        }
+
+        public static void DoFreeDrawFloatText()
+        {
+               Debug.Log("called");
+            if (Instance == null || Instance.freeDrawFloatText == null ||
+                Instance.FreeDrawFloatTextPosition == null)
+                return;
+
+            var position = Instance.FreeDrawFloatTextPosition.position;
+            var floatText = Instantiate(Instance.freeDrawFloatText, position, Quaternion.identity);
+            floatText.DoFloatText("+1", position, Color.yellow, Vector2.up, 0.8f, Instance.FreeDrawFloatTextPosition);
         }
 
         void ClearAllBricks()
@@ -356,38 +392,43 @@ namespace BallzGame.Managers
                 );
             }
         }
-        public static void DoHealText(Vector3 pos,int amount)
-        {
+          public static void DoHealText(Vector3 pos, int amount)
+          {
 
-            var floatTextPrefab = Instance.brickHealFloatText;
-            if (floatTextPrefab != null)
-            {
-                Vector3 spawnPos = pos;
+               var floatTextPrefab = Instance.brickHealFloatText;
+               var vfx = Instance.healEffect;
+               if (floatTextPrefab != null)
+               {
+                    Vector3 spawnPos = pos;
+                    GameObject gm = Instantiate(
+                                      vfx,
+                                      spawnPos,
+                                      Quaternion.identity
+                                  );
+                    // 👉 稍微抬高一点避免重叠
+                    spawnPos += Vector3.up * 0.2f;
 
-                // 👉 稍微抬高一点避免重叠
-                spawnPos += Vector3.up * 0.2f;
+                    // 👉 随机一点方向（更自然）
+                    Vector2 dir = (Vector2.up + Random.insideUnitCircle * 0.5f).normalized;
 
-                // 👉 随机一点方向（更自然）
-                Vector2 dir = (Vector2.up + Random.insideUnitCircle * 0.5f).normalized;
+                    // 👉 实例化
+                    FloatText ft = Instantiate(
+                        floatTextPrefab,
+                        spawnPos,
+                        Quaternion.identity
+                    );
 
-                // 👉 实例化
-                FloatText ft = Instantiate(
-                    floatTextPrefab,
-                    spawnPos,
-                    Quaternion.identity
-                );
-
-                // 👉 颜色可以自己调（这里红色伤害）
-                ft.DoFloatText(
-                    "+"+amount,
-                    spawnPos,
-                    Color.green,
-                    dir,
-                    0.8f
-                );
-            }
-        }
-        public static void DoShieldText(Vector3 pos,int amount)
+                    // 👉 颜色可以自己调（这里红色伤害）
+                    ft.DoFloatText(
+                        "+" + amount,
+                        spawnPos,
+                        Color.green,
+                        dir,
+                        0.8f
+                    );
+               }
+          }
+          public static void DoShieldText(Vector3 pos,int amount)
         {
 
             var floatTextPrefab = Instance.brickShieldFloatText;

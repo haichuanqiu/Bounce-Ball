@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 11af44c4c4844861a0bde96431dc87c4, type: 3}
   m_Name: ExplosionBall
   m_EditorClassIdentifier: Assembly-CSharp::scrpits.BallzGame.Balls.BallData
-  Icon: {fileID: 21300000, guid: 8aa7453560ba446b0bda0ba6c260160f, type: 3}
+  Icon: {fileID: 1101788188899964851, guid: 9cf165d5b4abe1a40b46f6a260ef69fe, type: 3}
   Name: boom ball
   Description: boom ball

@@ -17,20 +17,28 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4629431560487495573, guid: ed53b3b6b329a2d47bfe1917e7ef328c, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 3401489329771267929, guid: 0ec65669d8606c94ea7ee08c561f7fcb, type: 3}
+    - target: {fileID: 4629431560487495573, guid: ed53b3b6b329a2d47bfe1917e7ef328c, type: 3}
       propertyPath: m_Color.b
-      value: 0.2562646
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4629431560487495573, guid: ed53b3b6b329a2d47bfe1917e7ef328c, type: 3}
       propertyPath: m_Color.g
-      value: 0.19811308
+      value: 0.40303668
       objectReference: {fileID: 0}
     - target: {fileID: 4629431560487495573, guid: ed53b3b6b329a2d47bfe1917e7ef328c, type: 3}
       propertyPath: m_Color.r
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 4629431560487495573, guid: ed53b3b6b329a2d47bfe1917e7ef328c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 9414f598700e1cb4e9e174b11bd25c45, type: 2}
     - target: {fileID: 6066573623839633467, guid: ed53b3b6b329a2d47bfe1917e7ef328c, type: 3}
       propertyPath: colors.ctime1
-      value: 65535
+      value: 65407
       objectReference: {fileID: 0}
     - target: {fileID: 6066573623839633467, guid: ed53b3b6b329a2d47bfe1917e7ef328c, type: 3}
       propertyPath: colors.ctime2
@@ -42,27 +50,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6066573623839633467, guid: ed53b3b6b329a2d47bfe1917e7ef328c, type: 3}
       propertyPath: colors.key0.b
-      value: 0.19823186
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6066573623839633467, guid: ed53b3b6b329a2d47bfe1917e7ef328c, type: 3}
       propertyPath: colors.key0.g
-      value: 0.21836537
+      value: 0.21593289
       objectReference: {fileID: 0}
     - target: {fileID: 6066573623839633467, guid: ed53b3b6b329a2d47bfe1917e7ef328c, type: 3}
       propertyPath: colors.key0.r
-      value: 0.24528301
+      value: 0.5345911
       objectReference: {fileID: 0}
     - target: {fileID: 6066573623839633467, guid: ed53b3b6b329a2d47bfe1917e7ef328c, type: 3}
       propertyPath: colors.key1.b
-      value: 0.27260008
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6066573623839633467, guid: ed53b3b6b329a2d47bfe1917e7ef328c, type: 3}
       propertyPath: colors.key1.g
-      value: 0.24787383
+      value: 0.40392157
       objectReference: {fileID: 0}
     - target: {fileID: 6066573623839633467, guid: ed53b3b6b329a2d47bfe1917e7ef328c, type: 3}
       propertyPath: colors.key1.r
-      value: 0.52201253
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6066573623839633467, guid: ed53b3b6b329a2d47bfe1917e7ef328c, type: 3}
       propertyPath: colors.key2.b
@@ -147,7 +155,28 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1941241938559150035, guid: ed53b3b6b329a2d47bfe1917e7ef328c, type: 3}
       insertIndex: -1
       addedObject: {fileID: 104246491320257687}
+    - targetCorrespondingSourceObject: {fileID: 6968685495403235276, guid: ed53b3b6b329a2d47bfe1917e7ef328c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6061449390069699514}
   m_SourcePrefab: {fileID: 100100000, guid: ed53b3b6b329a2d47bfe1917e7ef328c, type: 3}
+--- !u!1 &4573623451963990316 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6968685495403235276, guid: ed53b3b6b329a2d47bfe1917e7ef328c, type: 3}
+  m_PrefabInstance: {fileID: 6903306593318266592}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6061449390069699514
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4573623451963990316}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b4ed8f8907da384181d11333d1e4d7f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Utils.SpriteBrightness
+  brightness: 1.2
 --- !u!1 &4989378740085604659 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1941241938559150035, guid: ed53b3b6b329a2d47bfe1917e7ef328c, type: 3}

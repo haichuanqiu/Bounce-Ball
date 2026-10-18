@@ -47,7 +47,7 @@ MonoBehaviour:
   Name: Ball Bounce+1
   Description: 'Normal Ball Can bounce 1 more time when hit bottom '
   Icon: {fileID: 21300000, guid: 4775bc44947d548059450bcbdee3a545, type: 3}
-  Price: 2
+  Price: 27
   Count: 0
   maxAmount: 5
   target: 1

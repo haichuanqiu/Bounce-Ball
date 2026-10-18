@@ -1,12 +1,13 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using BallzGame.Managers;
 using BallzGame.Balls;
 using BallzGame.InventorySystem;
 using BallzGame.InventorySystem.ShopItems;
+using BallzGame.Managers;
 using BallzGame.Managers.Shop;
 using BallzGame.Managers.Shop.UI;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -26,7 +27,14 @@ namespace GameMeta
 		public Button ShopSubPanelExit;
 		public Button GainBallConfirm;
 
+		[Header("Free six-ball draws")]
+		public Button FreeDrawButton;
+		public TMP_Text FreeDrawCountText;
+		public TMP_Text LaunchesUntilFreeDrawText;
+
 		public GameObject GainBallPanel;
+
+		public bool IsShowingGainBalls => GainBallPanel.activeSelf;
 		public List<GainBallCard> GainBallPanelItems;
 		public List<GainItemCard>  GainItemCards;
 		public TextMeshProUGUI Coin;
@@ -51,9 +59,13 @@ namespace GameMeta
 			GainBallConfirm.onClick.AddListener(() =>
 				{
 					GainBallPanel.SetActive(false);
+					GameManager.Instance.shopController.UpdateFreeDrawUI();
 				}
 			);
 			RefreshShopItem.onClick.AddListener(GameManager.Instance.shopController.PlayerRefreshItem);
+			if (FreeDrawButton != null)
+				FreeDrawButton.onClick.AddListener(GameManager.Instance.shopController.ClaimFreeDraw);
+			GameManager.Instance.shopController.UpdateFreeDrawUI();
 			AddShopButtonEvents();
 		}
 		private Coroutine longPressCoroutine;
@@ -71,8 +83,9 @@ namespace GameMeta
 				longPressTriggered = false;
 				longPressCoroutine = StartCoroutine(CheckLongPress());
 			});
-
-			shopButton.triggers.Add(pointerDown);
+			UnityEngine.Debug.Log(shopButton);
+               UnityEngine.Debug.Log(pointerDown);
+               shopButton.triggers.Add(pointerDown);
 
 
 			// 松开

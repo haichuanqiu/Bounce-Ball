@@ -7,113 +7,175 @@ using Utils;
 namespace BallzGame.Bricks.SpecialBricks
 {
 
+          public class TreeBrick : SpecialBrick
+          {
+               public SpriteRenderer shieldIcon;
+               public GameObject physicsTrigger;
+               public TriggerCollector triggers;
 
-    public class TreeBrick : SpecialBrick
-    {
-        public SpriteRenderer TreeIcon;
-        public TriggerCollector triggers;
-        public List<Brick> SurroundingBricks = new List<Brick>();
-        public float DefenseInterval;
-        public float WaitInterval;
-        Coroutine AddDefenseRoutine;
-        private Coroutine effectRoutine;
+               public List<Brick> SurroundingBricks = new List<Brick>();
 
-        public IEnumerator BrickEffect()
-        {
-            while (true)
-            {
-                yield return new WaitForSeconds(WaitInterval);
-                AddDefenseRoutine = StartCoroutine(AddingDefense());
+               public float DefenseInterval = 3f;
+               public float WaitInterval = 5f;
 
-                // 等待这个协程执行完
-                yield return AddDefenseRoutine;
-                AddDefenseRoutine = null;
+               [Header("闪烁设置")]
+               public int FlashCount = 3;
+               public float FlashInterval = 0.12f;
 
-            }
-        }
+               private Coroutine AddDefenseRoutine;
+               private Coroutine effectRoutine;
 
-        public override void OnMiniGameStart()
-        {
-            base.OnMiniGameStart();
-            Stop();
-        }
+               public IEnumerator BrickEffect()
+               {
+                    while (true)
+                    {
+                         yield return new WaitForSeconds(WaitInterval);
 
-        override public void OnMiniGameEnd()
-        {
-            base.OnMiniGameEnd();
-            StartEffect();
-        }
+                         AddDefenseRoutine = StartCoroutine(AddingDefense());
+                         yield return AddDefenseRoutine;
 
-        private void Start()
-        {
-            StartEffect();
-        }
+                         AddDefenseRoutine = null;
+                    }
+               }
 
-        public void StartEffect()
-        {
-            if (effectRoutine == null && isActiveAndEnabled)
-                effectRoutine = StartCoroutine(BrickEffect());
-        }
+               public override void OnMiniGameStart()
+               {
+                    base.OnMiniGameStart();
+                    Stop();
+               }
 
-        public void Stop()
-        {
-            if (effectRoutine != null)
-            {
-                StopCoroutine(effectRoutine);
-                effectRoutine = null;
-            }
-            if (AddDefenseRoutine != null)
-            {
-                StopCoroutine(AddDefenseRoutine);
-                AddDefenseRoutine = null;
-            }
-            RemoveDefense();
-        }
+               public override void OnMiniGameEnd()
+               {
+                    base.OnMiniGameEnd();
+                    StartEffect();
+               }
 
-        public IEnumerator AddingDefense()
-        {
-            TreeIcon.gameObject.SetActive(true);
-            yield return new WaitForFixedUpdate();
-            AddDefense();
-            yield return new WaitForSeconds(DefenseInterval);
-            RemoveDefense();
-        }
+               private void Start()
+               {
+                    if (physicsTrigger != null)
+                         physicsTrigger.SetActive(false);
 
-        void AddDefense()
-        {
+                    if (shieldIcon != null)
+                         shieldIcon.gameObject.SetActive(false);
 
-            foreach (var VARIABLE in triggers.Colliders)
-            {
-                if (!VARIABLE)
-                    continue;
-                var script = VARIABLE.GetComponent<Brick>();
-                if (script && !SurroundingBricks.Contains(script))
-                {
-                    script.SetDefence(script.DefencePoint + 3);
-                    SurroundingBricks.Add(script);
-                }
-            }
-        }
+                    StartEffect();
+               }
 
-        private void OnDestroy()
-        {
-            Stop();
-        }
+               public void StartEffect()
+               {
+                    if (effectRoutine == null && isActiveAndEnabled)
+                         effectRoutine = StartCoroutine(BrickEffect());
+               }
 
-        void RemoveDefense()
-        {
-            if (TreeIcon != null)
-                TreeIcon.gameObject.SetActive(false);
-            foreach (var brick in SurroundingBricks)
-            {
-                if (brick != null)
-                {
+               public void Stop()
+               {
+                    if (effectRoutine != null)
+                    {
+                         StopCoroutine(effectRoutine);
+                         effectRoutine = null;
+                    }
 
-                    brick.SetDefence(brick.DefencePoint - Mathf.Clamp(3, 0, brick.DefencePoint));
-                }
-            }
+                    if (AddDefenseRoutine != null)
+                    {
+                         StopCoroutine(AddDefenseRoutine);
+                         AddDefenseRoutine = null;
+                    }
 
-            SurroundingBricks.Clear();
-        }
-    }
-}
+                    if (physicsTrigger != null)
+                         physicsTrigger.SetActive(false);
+
+                    RemoveDefense();
+               }
+
+               public IEnumerator AddingDefense()
+               {
+                    // 开启前闪烁
+                    yield return StartCoroutine(FlashShield());
+
+                    // 开启触发器
+                    if (physicsTrigger != null)
+                         physicsTrigger.SetActive(true);
+
+                    if (shieldIcon != null)
+                         shieldIcon.gameObject.SetActive(true);
+
+                    // 等待物理系统更新
+                    yield return new WaitForFixedUpdate();
+
+                    AddDefense();
+
+                    // 持续防御
+                    yield return new WaitForSeconds(DefenseInterval);
+
+                    // 关闭前闪烁
+                    yield return StartCoroutine(FlashShield());
+
+                    // 关闭触发器
+                    if (physicsTrigger != null)
+                         physicsTrigger.SetActive(false);
+
+                    RemoveDefense();
+               }
+
+               private IEnumerator FlashShield()
+               {
+                    if (shieldIcon == null)
+                         yield break;
+
+                    for (int i = 0; i < FlashCount; i++)
+                    {
+                         shieldIcon.gameObject.SetActive(false);
+                         yield return new WaitForSeconds(FlashInterval);
+
+                         shieldIcon.gameObject.SetActive(true);
+                         yield return new WaitForSeconds(FlashInterval);
+                    }
+               }
+
+               void AddDefense()
+               {
+                    foreach (var collider in triggers.Colliders)
+                    {
+                         if (!collider)
+                              continue;
+
+                         var brick = collider.GetComponent<Brick>();
+
+                         if (brick && !SurroundingBricks.Contains(brick))
+                         {
+                              brick.SetDefence(brick.DefencePoint + 3);
+                              SurroundingBricks.Add(brick);
+                         }
+                    }
+               }
+
+               void RemoveDefense()
+               {
+                    if (shieldIcon != null)
+                         shieldIcon.gameObject.SetActive(false);
+
+                    foreach (var brick in SurroundingBricks)
+                    {
+                         if (brick != null)
+                         {
+                              brick.SetDefence(
+                                  brick.DefencePoint -
+                                  Mathf.Clamp(3, 0, brick.DefencePoint)
+                              );
+                         }
+                    }
+
+                    SurroundingBricks.Clear();
+               }
+
+               private void OnDestroy()
+               {
+                    Stop();
+               }
+
+               private void OnDisable()
+               {
+                    Stop();
+               }
+          }
+     }

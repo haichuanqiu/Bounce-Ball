@@ -1,8 +1,9 @@
-using System.Net.Mime;
-
 using BallzGame.Balls;
 using BallzGame.InventorySystem;
 using BallzGame.InventorySystem.ShopItems;
+using NUnit.Framework;
+using System.Collections.Generic;
+using System.Net.Mime;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -17,8 +18,11 @@ namespace BallzGame.Managers.Shop
 		public TMP_Text PriceText;
 		public Image IconImage;
 		public Button button;
-
-		public void SetData(ShopItem data)
+		public List<Image> SlotDots;
+          public TMP_Text slotdotText;
+		public Sprite slotdotFilled;
+		public Sprite slotdotEmpty;
+          public void SetData(ShopItem data)
 		{
 			if (NameText)
 			{
@@ -43,7 +47,53 @@ namespace BallzGame.Managers.Shop
 			{
 				Count.text = data.Count.ToString();
 			}
-		}
+               if (data.maxAmount > 0)
+               {
+                    var item = GameManager.Instance.inventory.GetItem(
+                        data.GetType(),
+                        data.GetVersion()
+                    );
+
+                    int current = item != null ? item.Count : 0;
+                    int max = data.maxAmount;
+
+                    // 最多显示 8 个 Dot
+                    int visibleCount = Mathf.Min(max, SlotDots.Count);
+
+                    for (int i = 0; i < SlotDots.Count; i++)
+                    {
+                         Image dot = SlotDots[i];
+                         if (dot == null) continue;
+
+                         bool visible = i < visibleCount;
+                         dot.gameObject.SetActive(visible);
+
+                         if (visible)
+                         {
+                              dot.sprite = i < current
+                                  ? slotdotFilled
+                                  : slotdotEmpty;
+                         }
+                    }
+
+                    if (slotdotText)
+                    {
+                         slotdotText.gameObject.SetActive(true);
+                         slotdotText.text = $"{current}/{max}";
+                    }
+               }
+               else
+               {
+                    foreach (var dot in SlotDots)
+                    {
+                         if (dot != null)
+                              dot.gameObject.SetActive(false);
+                    }
+
+                    if (slotdotText)
+                         slotdotText.gameObject.SetActive(false);
+               }
+          }
 
 	}
 }

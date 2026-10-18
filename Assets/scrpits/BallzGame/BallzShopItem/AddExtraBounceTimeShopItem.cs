@@ -7,7 +7,6 @@ namespace BallzGame.InventorySystem.ShopItems
 	public class AddExtraBounceTimeShopItem: ShopItem
 	{
 		private BallExtraDamage ballExtraDamageController;
-		[SerializeField] private int maxAmount;
 		[SerializeField] private BallExtraDamage.BallType target;
 		[SerializeField] private int increment;
 

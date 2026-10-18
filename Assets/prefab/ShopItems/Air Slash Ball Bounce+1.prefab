@@ -47,7 +47,7 @@ MonoBehaviour:
   Name: Air Slash Ball Bounce+1
   Description: 'Air Slash Ball Can bounce 1 more time when hit bottom '
   Icon: {fileID: 21300000, guid: 06fb9d908c8e14fa1bd278a2301a1ca3, type: 3}
-  Price: 2
+  Price: 27
   Count: 0
   maxAmount: 5
   target: 9

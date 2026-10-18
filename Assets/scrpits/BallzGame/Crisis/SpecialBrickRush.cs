@@ -121,7 +121,9 @@ public class SpecialBrickRush : CrisisBehaviour
 		for (int i = 0; i < width; i++)
 		{
 			spawner.NextBricks.Add(bigBrick);
-			spawner.NextBricksHP.Add(GameManager.Instance.level*2);
+			// Crisis bricks must not fall below the normal HP curve at later waves.
+			spawner.NextBricksHP.Add(Mathf.Max(GameManager.Instance.level * 2,
+				spawner.GetRandomHPByLevel(GameManager.Instance.level)));
 		}
 	}
 

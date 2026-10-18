@@ -45,17 +45,25 @@ PrefabInstance:
       value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     - target: {fileID: 4514277577794570849, guid: fa6e4896bfac3fe41b2b330bb2711109, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: -5935028966851341537, guid: 9a58614afcf21b74da33db19864792fd, type: 3}
+    - target: {fileID: 4514277577794570849, guid: fa6e4896bfac3fe41b2b330bb2711109, type: 3}
       propertyPath: m_Color.b
-      value: 0.70440245
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4514277577794570849, guid: fa6e4896bfac3fe41b2b330bb2711109, type: 3}
       propertyPath: m_Color.g
-      value: 0.36549175
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4514277577794570849, guid: fa6e4896bfac3fe41b2b330bb2711109, type: 3}
       propertyPath: m_Color.r
-      value: 0.69957274
+      value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 4514277577794570849, guid: fa6e4896bfac3fe41b2b330bb2711109, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
     - target: {fileID: 7619471925180325237, guid: fa6e4896bfac3fe41b2b330bb2711109, type: 3}
       propertyPath: m_LocalPosition.x
       value: 7.22008

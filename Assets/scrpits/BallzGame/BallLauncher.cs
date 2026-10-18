@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using BallzGame.Balls;
+using GameMeta;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -23,6 +24,8 @@ namespace BallzGame.Managers
         private Coroutine timer;
 
         public bool HasInput;
+
+        private bool isListening;
 
         private Vector2 inputTarget;
 
@@ -119,7 +122,8 @@ namespace BallzGame.Managers
         private void OnRelease(
             PointerEventData eventData)
         {
-            if (eventData == null)
+            if (eventData == null || !isListening ||
+                MainMenu.Instance.InGamePanel.IsShowingGainBalls)
                 return;
 
 
@@ -172,12 +176,14 @@ namespace BallzGame.Managers
         public void WaitForInput()
         {
             HasInput = false;
+            isListening = true;
         }
 
 
         public void StopListenToInput()
         {
             HasInput = false;
+            isListening = false;
         }
 
 
@@ -753,26 +759,8 @@ namespace BallzGame.Managers
             // Initial Ball
             // -----------------------------------------------------
 
-            if (InitialBall != null)
-            {
-                BallCount = 1;
-                ballPrefabs.Add(
-                    InitialBall
-                );
-
-
-                if (
-                    !ballDatas.TryAdd(
-                        InitialBall.Data,
-                        1
-                    )
-                )
-                {
-                    ballDatas[
-                        InitialBall.Data
-                    ]++;
-                }
-            }
+            // InitialBall is retained for existing Inspector references.
+            // Opening balls are now granted by GameManager through the gacha pool.
 
 
             // -----------------------------------------------------
@@ -801,6 +789,8 @@ namespace BallzGame.Managers
             HasInput = false;
 
             SkipPressed = false;
+
+            isListening = false;
 
             interruptCoroutine = null;
 

@@ -7,7 +7,7 @@ namespace Utils
 {
     public class FloatText : MonoBehaviour
     {
-        public TextMeshPro text;
+        public TMP_Text text;
 
 
         public void DoFloatText(

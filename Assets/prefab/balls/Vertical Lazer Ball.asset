@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 11af44c4c4844861a0bde96431dc87c4, type: 3}
   m_Name: Vertical Lazer Ball
   m_EditorClassIdentifier: Assembly-CSharp::scrpits.BallzGame.Balls.BallData
-  Icon: {fileID: 21300000, guid: efd96cdc342f9499c908dc8f635a2094, type: 3}
+  Icon: {fileID: -91965030, guid: 9cf165d5b4abe1a40b46f6a260ef69fe, type: 3}
   Name: Vertical Lazer Ball
   Description: Vertical Lazer Ball

@@ -10,11 +10,13 @@ namespace BallzGame.Bricks.SpecialBricks
 
     {
         public TriggerCollector triggers;
-        public GameObject HealVisual;
+          [SerializeField] SpriteRenderer rd;
         public int HealAmount = 3;
         private bool activated;
+          [SerializeField] private Sprite NotActivate;
+          [SerializeField] private Sprite Activated;
 
-        [SerializeField]
+          [SerializeField]
         private int moveCount;
 
         public override void OnRowMoved()
@@ -23,7 +25,8 @@ namespace BallzGame.Bricks.SpecialBricks
             moveCount += 1;
             if (moveCount == 1)
             {
-                HealVisual.SetActive(true);
+                    rd.sprite = Activated;
+                //HealVisual.SetActive(true);
             }
             else if (moveCount > 1)
             {
@@ -36,18 +39,10 @@ namespace BallzGame.Bricks.SpecialBricks
         public override void OnMiniGameStart()
         {
             base.OnMiniGameStart();
-            HealVisual.SetActive(false);
 
         }
 
-        public override void OnMiniGameEnd()
-        {
-            if (moveCount >= 1)
-            {
-                HealVisual.SetActive(true);
-            }
-
-        }
+        
 
         public IEnumerator Heal()
         {

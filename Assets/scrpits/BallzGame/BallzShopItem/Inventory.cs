@@ -123,6 +123,7 @@ namespace BallzGame.InventorySystem.ShopItems
 		public Sprite Icon;
 		public int Price;
 		public int Count = 0;
+          [SerializeField] public int maxAmount;
 		protected bool InventoryHasBelow(int amount)
 		{
 			var item = GameManager.Instance.inventory.GetItem(
