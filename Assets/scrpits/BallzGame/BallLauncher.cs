@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using BallzGame.Balls;
+using BallzGame.Control;
 using GameMeta;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -8,7 +9,7 @@ using UnityEngine.UI;
 
 namespace BallzGame.Managers
 {
-    public class BallLauncher : MonoBehaviour
+    public class BallLauncher : MonoBehaviour, ILaunchDirectionControl
     {
         [SerializeField]
         private List<Ball> ballPrefabs;
@@ -28,6 +29,10 @@ namespace BallzGame.Managers
         private bool isListening;
 
         private Vector2 inputTarget;
+
+        public Vector2? ForcedLaunchTarget { get; private set; }
+        public int ActiveBallCount => activeBalls;
+        public bool IsListeningForInput => isListening;
 
         public int BallCount;
 
@@ -165,11 +170,15 @@ namespace BallzGame.Managers
                 transform.position.y + 0.02f
             )
             {
-                inputTarget =
-                    worldPosition;
+                inputTarget = ForcedLaunchTarget ?? (Vector2)worldPosition;
 
                 HasInput = true;
             }
+        }
+
+        public void SetForcedLaunchTarget(Vector2? worldTarget)
+        {
+            ForcedLaunchTarget = worldTarget;
         }
 
 
@@ -184,6 +193,8 @@ namespace BallzGame.Managers
         {
             HasInput = false;
             isListening = false;
+
+            ForcedLaunchTarget = null;
         }
 
 

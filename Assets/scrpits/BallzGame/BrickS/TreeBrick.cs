@@ -1,13 +1,14 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using BallzGame.Control;
 using UnityEngine;
 using Utils;
 
 namespace BallzGame.Bricks.SpecialBricks
 {
 
-          public class TreeBrick : SpecialBrick
+          public class TreeBrick : SpecialBrick, IBrickEffectControl
           {
                public SpriteRenderer shieldIcon;
                public GameObject physicsTrigger;
@@ -24,6 +25,10 @@ namespace BallzGame.Bricks.SpecialBricks
 
                private Coroutine AddDefenseRoutine;
                private Coroutine effectRoutine;
+               private bool automaticSchedulingEnabled = true;
+
+               public bool AutomaticSchedulingEnabled => automaticSchedulingEnabled;
+               public bool IsEffectActive => SurroundingBricks.Count > 0;
 
                public IEnumerator BrickEffect()
                {
@@ -48,13 +53,35 @@ namespace BallzGame.Bricks.SpecialBricks
                     if (shieldIcon != null)
                          shieldIcon.gameObject.SetActive(false);
 
-                    StartEffect();
+                    if (automaticSchedulingEnabled)
+                         StartEffect();
                }
 
                public void StartEffect()
                {
-                    if (effectRoutine == null && isActiveAndEnabled)
+                    if (automaticSchedulingEnabled && effectRoutine == null && isActiveAndEnabled)
                          effectRoutine = StartCoroutine(BrickEffect());
+               }
+
+               public void SetAutomaticScheduling(bool enabled)
+               {
+                    automaticSchedulingEnabled = enabled;
+                    if (enabled)
+                         StartEffect();
+                    else
+                         Stop();
+               }
+
+               public void ActivateEffect()
+               {
+                    if (shieldIcon != null)
+                         shieldIcon.gameObject.SetActive(true);
+                    AddDefense();
+               }
+
+               public void DeactivateEffect()
+               {
+                    RemoveDefense();
                }
 
                public void Stop()

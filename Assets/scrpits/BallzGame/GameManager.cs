@@ -1,6 +1,7 @@
 using System.Collections;
 using BallzGame.Balls;
 using BallzGame.Bricks;
+using BallzGame.Control;
 using BallzGame.InventorySystem;
 using BallzGame.Managers.Shop;
 using GameMeta;
@@ -13,7 +14,7 @@ namespace BallzGame.Managers
 {
 
 
-    public class GameManager : MonoBehaviour
+    public class GameManager : MonoBehaviour, IScenarioBoardControl
     {
 
         [Header("controllers")]
@@ -53,6 +54,32 @@ namespace BallzGame.Managers
 
             Brick brick = grid[x, y];
             return brick && brick.Hp > 0 ? brick : null;
+        }
+
+        public bool TrySpawnScenarioBrick(Brick prefab, Vector2Int gridPosition, int hp, out Brick brick)
+        {
+            brick = null;
+            if (!prefab || grid == null || gridPosition.x < 0 || gridPosition.y < 0 ||
+                gridPosition.x >= grid.GetLength(0) || gridPosition.y >= grid.GetLength(1) ||
+                grid[gridPosition.x, gridPosition.y])
+                return false;
+
+            brick = Instantiate(prefab, BricksParent);
+            brick.GridPosition = gridPosition;
+            brick.transform.position = new Vector3(gridPosition.x, -gridPosition.y, 0f);
+            brick.Init(Mathf.Max(1, hp));
+            grid[gridPosition.x, gridPosition.y] = brick;
+            return true;
+        }
+
+        public bool TryMoveScenarioBricksDown()
+        {
+            return grid != null && TryMoveBricksDown();
+        }
+
+        public void ClearScenarioBricks()
+        {
+            ClearAllBricks();
         }
 
         public int level = 1;

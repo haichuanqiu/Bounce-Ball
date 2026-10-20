@@ -1,12 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
+using BallzGame.Control;
 using BallzGame.Managers;
 using UnityEngine;
 using Utils;
 
 namespace BallzGame.Bricks.SpecialBricks
 {
-    public class HealBrick : SpecialBrick
+    public class HealBrick : SpecialBrick, ITriggerableBrickEffect
 
     {
         public TriggerCollector triggers;
@@ -41,13 +42,11 @@ namespace BallzGame.Bricks.SpecialBricks
 
         public IEnumerator Heal()
         {
-            AddHP();
+            TriggerEffect();
             yield break;
         }
 
-
-
-        void AddHP()
+        public void TriggerEffect()
         {
             foreach (var script in GetSurroundingBricks())
             {

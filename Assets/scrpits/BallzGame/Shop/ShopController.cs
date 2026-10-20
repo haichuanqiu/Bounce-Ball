@@ -127,6 +127,17 @@ namespace BallzGame.Managers.Shop
 
         public void OnLaunchCompleted()
         {
+            OnLaunchCompleted(true);
+        }
+
+        public void OnLaunchCompleted(bool countTowardsFreeDraw)
+        {
+            if (!countTowardsFreeDraw)
+            {
+                UpdateFreeDrawUI();
+                return;
+            }
+
             launchesSinceFreeDraw++;
             if (launchesSinceFreeDraw >= LaunchesPerFreeDraw)
             {

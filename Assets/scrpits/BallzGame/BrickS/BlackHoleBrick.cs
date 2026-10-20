@@ -2,10 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using BallzGame.Bricks;
 using BallzGame.Bricks.SpecialBricks;
+using BallzGame.Control;
 using UnityEngine;
 using Utils;
 
-public class BlackHoleBrick : SpecialBrick
+public class BlackHoleBrick : SpecialBrick, IBrickEffectControl
 {
      [SerializeField] private SpriteRenderer BlackholeSprite;
      [SerializeField] private GameObject physicsTrigger;
@@ -22,6 +23,10 @@ public class BlackHoleBrick : SpecialBrick
 
      private Coroutine AddDefenseRoutine;
      private Coroutine effectRoutine;
+     private bool automaticSchedulingEnabled = true;
+
+     public bool AutomaticSchedulingEnabled => automaticSchedulingEnabled;
+     public bool IsEffectActive => SurroundingBricks.Count > 0;
 
      public IEnumerator BrickEffect()
      {
@@ -46,15 +51,37 @@ public class BlackHoleBrick : SpecialBrick
           if (BlackholeSprite != null)
                BlackholeSprite.gameObject.SetActive(false);
 
-          StartEffect();
+          if (automaticSchedulingEnabled)
+               StartEffect();
      }
 
      public void StartEffect()
      {
-          if (effectRoutine == null && isActiveAndEnabled)
+          if (automaticSchedulingEnabled && effectRoutine == null && isActiveAndEnabled)
           {
                effectRoutine = StartCoroutine(BrickEffect());
           }
+     }
+
+     public void SetAutomaticScheduling(bool enabled)
+     {
+          automaticSchedulingEnabled = enabled;
+          if (enabled)
+               StartEffect();
+          else
+               Stop();
+     }
+
+     public void ActivateEffect()
+     {
+          if (BlackholeSprite != null)
+               BlackholeSprite.gameObject.SetActive(true);
+          AddDefense();
+     }
+
+     public void DeactivateEffect()
+     {
+          RemoveDefense();
      }
 
      public void Stop()
