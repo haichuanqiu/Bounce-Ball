@@ -3,7 +3,6 @@ using BallzGame.Balls;
 using BallzGame.Bricks;
 using BallzGame.InventorySystem;
 using BallzGame.Managers.Shop;
-using BallzGame.Minigame;
 using GameMeta;
 using UnityEngine;
 using UnityEngine.Events;
@@ -20,7 +19,6 @@ namespace BallzGame.Managers
         [Header("controllers")]
         public BrickSpawner spawner;
         public BallLauncher launcher;
-        public FeverController feverController;
         public ShopController shopController;
         public Inventory inventory;
         public BallExtraDamage BallExtraDamageController;
@@ -71,7 +69,7 @@ namespace BallzGame.Managers
         [SerializeField] private FloatText freeDrawFloatText;
         public Transform FreeDrawFloatTextPosition;
 
-        public bool CanClaimFreeDraw => state == State.WaitForFeverOrLaunchInput &&
+        public bool CanClaimFreeDraw => state == State.WaitForLaunchInput &&
             !launcher.HasInput && !MainMenu.Instance.InGamePanel.IsShowingGainBalls;
 
           [SerializeField] private GameObject healEffect;
@@ -122,7 +120,7 @@ namespace BallzGame.Managers
             {
                 switch (state)
                 {
-                    case State.WaitForFeverOrLaunchInput:
+                    case State.WaitForLaunchInput:
                         shopController.RefreshShopItems();
                         int crisisRewards = 0;
                         while (CrisisManager && CrisisManager.TryConsumeCompletedReward())
@@ -133,18 +131,9 @@ namespace BallzGame.Managers
                             yield return new WaitUntil(() => !MainMenu.Instance.InGamePanel.ShopSubPanel.activeSelf);
                         }
                         launcher.WaitForInput();
-                        feverController.WaitForInput();
                         shopController.UpdateFreeDrawUI();
-                        yield return new WaitUntil(() => launcher.HasInput || feverController.FeverClicked);
-                        if (launcher.HasInput)
-                        {
-                            state = State.ShootBall;
-                        }
-                        else
-                        {
-                            state = State.Fever;
-                        }
-                        feverController.StopListenToInput();
+                        yield return new WaitUntil(() => launcher.HasInput);
+                        state = State.ShootBall;
                         launcher.StopListenToInput();
                         shopController.UpdateFreeDrawUI();
                         break;
@@ -155,12 +144,6 @@ namespace BallzGame.Managers
                         state = State.TrySpawnRow;
                         level++;
                         MainMenu.Instance.InGamePanel.WaveDisplay.text = "Wave:   "+level.ToString();
-                        break;
-                    case State.Fever:
-                        NotifyBricksMiniGameStart();
-                        yield return StartCoroutine(feverController.StartFeverGame(GetContext()));
-                        NotifyBricksMiniGameEnd();
-                        state = State.WaitForFeverOrLaunchInput;
                         break;
                     case State.TrySpawnRow:
 
@@ -179,7 +162,7 @@ namespace BallzGame.Managers
 
                             BeforeRowSpawn.Invoke();
                             SpawnTopRow();
-                            state = State.WaitForFeverOrLaunchInput;
+                            state = State.WaitForLaunchInput;
                         }
                         break;
                     case State.GameOver:
@@ -216,7 +199,6 @@ namespace BallzGame.Managers
                 CrisisManager.ClearMarks();
             spawner.NextRowIsCrisis = false;
             inventory.Clear();
-            feverController.Reset();
             launcher.Reset();
             BallExtraDamageController.Reset();
             shopController.ResetFreeDraws();
@@ -327,43 +309,6 @@ namespace BallzGame.Managers
             return StillHaveSpace;
         }
 
-        void NotifyBricksMiniGameStart()
-        {
-            for (int x = 0; x < width; x++)
-            {
-                for (int y = 0; y < height; y++)
-                {
-                    if (grid[x, y])
-                    {
-                        grid[x, y].OnMiniGameStart();
-                    }
-                }
-            }
-        }
-
-
-        void NotifyBricksMiniGameEnd()
-        {
-            for (int x = 0; x < width; x++)
-            {
-                for (int y = 0; y < height; y++)
-                {
-                    if (grid[x, y] != null)
-                    {
-                        grid[x, y].OnMiniGameEnd();
-                    }
-                }
-            }
-        }
-        private FeverGameContext GetContext()
-        {
-            var context = new FeverGameContext();
-            context.CurrentLevel = level;
-            context.Grid = grid;
-            return context;
-        }
-
-
         [ContextMenu("Print Grid")]
         private void PrintGrid()
         {
@@ -394,8 +339,7 @@ namespace BallzGame.Managers
         public enum State
         {
             TrySpawnRow,
-            WaitForFeverOrLaunchInput,
-            Fever,
+            WaitForLaunchInput,
             GameOver,
             ShootBall,
         }

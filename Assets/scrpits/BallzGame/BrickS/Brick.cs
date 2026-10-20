@@ -33,15 +33,7 @@ namespace BallzGame.Bricks
             SpecialBrick?.OnRowMoved();
         }
 
-        public void OnMiniGameStart()
-        {
-            SpecialBrick?.OnMiniGameStart();
-        }
 
-        public void OnMiniGameEnd()
-        {
-            SpecialBrick?.OnMiniGameEnd();
-        }
 
         public void SetDefence(int defence)
         {
@@ -114,7 +106,6 @@ namespace BallzGame.Bricks
                 point.Init(transform.position, force);
             }
 
-            GameManager.Instance.feverController.AddFeverPoints(1);
             GameManager.Instance.AddCurrentResultPoints(OriginalHp);
             GameManager.Instance.CurrentResult.BricksCount += 1;
             OnDestroy?.Invoke();

@@ -34,16 +34,7 @@ namespace BallzGame.Bricks.SpecialBricks
 
         }
 
-        public virtual void OnMiniGameStart()
-        {
 
-        }
-
-        public virtual void OnMiniGameEnd()
-        {
-
-
-        }
 
         public virtual void OnHit(bool alive, object sender)
         {

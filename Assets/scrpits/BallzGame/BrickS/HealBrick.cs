@@ -36,11 +36,6 @@ namespace BallzGame.Bricks.SpecialBricks
 
         }
 
-        public override void OnMiniGameStart()
-        {
-            base.OnMiniGameStart();
-
-        }
 
         
 

@@ -38,17 +38,7 @@ namespace BallzGame.Bricks.SpecialBricks
                     }
                }
 
-               public override void OnMiniGameStart()
-               {
-                    base.OnMiniGameStart();
-                    Stop();
-               }
 
-               public override void OnMiniGameEnd()
-               {
-                    base.OnMiniGameEnd();
-                    StartEffect();
-               }
 
                private void Start()
                {
