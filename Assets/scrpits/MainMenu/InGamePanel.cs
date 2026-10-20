@@ -20,6 +20,10 @@ namespace GameMeta
 		public GameObject Panel;
 		public GameObject DieSubPanel;
 		public GameObject ShopSubPanel;
+		public GameObject PauseSubPanel;
+		public Button PauseButton;
+		public Button ResumeButton;
+		public Button ReturnToMainMenuButton;
 
 		public Button DieSubPanelConfirmButton;
 		public Button ShopSubPanelExit;
@@ -103,6 +107,9 @@ namespace GameMeta
 		}
 		private void Start()
 		{
+			if (PauseButton) PauseButton.onClick.AddListener(GameManager.Instance.PauseGame);
+			if (ResumeButton) ResumeButton.onClick.AddListener(GameManager.Instance.ResumeGame);
+			if (ReturnToMainMenuButton) ReturnToMainMenuButton.onClick.AddListener(GameManager.Instance.ReturnToMainMenu);
 			ShopSubPanelExit.onClick.AddListener(() =>
 				{
 					ShopSubPanel.SetActive(false);
@@ -233,7 +240,19 @@ namespace GameMeta
 
 		public override void Disable()
 		{
+			if (GameManager.Instance) GameManager.Instance.ResumeGame();
 			Panel.SetActive(false);
+		}
+
+		public void CloseSubPanels()
+		{
+			if (longPressCoroutine != null) StopCoroutine(longPressCoroutine);
+			longPressCoroutine = null;
+			longPressTriggered = false;
+			DieSubPanel.SetActive(false);
+			ShopSubPanel.SetActive(false);
+			GainBallPanel.SetActive(false);
+			if (PauseSubPanel) PauseSubPanel.SetActive(false);
 		}
 	}
 }

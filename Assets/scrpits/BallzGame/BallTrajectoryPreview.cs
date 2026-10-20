@@ -33,6 +33,14 @@ public class BallTrajectoryPreview : MonoBehaviour
 
     private Coroutine showCoroutine;
 
+    public void CancelAim()
+    {
+        dragging = false;
+        if (showCoroutine != null) StopCoroutine(showCoroutine);
+        showCoroutine = null;
+        HideTrajectory();
+    }
+
 
     // =========================================================
     // Unity

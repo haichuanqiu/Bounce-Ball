@@ -122,7 +122,7 @@ namespace BallzGame.Managers
         private void OnRelease(
             PointerEventData eventData)
         {
-            if (eventData == null || !isListening ||
+            if (eventData == null || !isListening || GameManager.Instance.IsPaused ||
                 MainMenu.Instance.InGamePanel.IsShowingGainBalls)
                 return;
 
@@ -710,6 +710,7 @@ namespace BallzGame.Managers
 
         public void Reset()
         {
+            GetComponent<BallTrajectoryPreview>()?.CancelAim();
             // -----------------------------------------------------
             // 停止 Skip 收球
             // -----------------------------------------------------

@@ -57,6 +57,64 @@ namespace BallzGame.Managers
 
         public int level = 1;
         private State state;
+        public bool IsPaused { get; private set; }
+        public bool IsGameRunning { get; private set; }
+        private float timeScaleBeforePause = 1f;
+
+        public void PauseGame()
+        {
+            if (!IsGameRunning || IsPaused || state == State.GameOver) return;
+            IsPaused = true;
+            timeScaleBeforePause = Time.timeScale;
+            Time.timeScale = 0f;
+            launcher.GetComponent<BallTrajectoryPreview>()?.CancelAim();
+            var panel = MainMenu.Instance.InGamePanel;
+            panel.PauseSubPanel.transform.SetAsLastSibling();
+            panel.PauseSubPanel.SetActive(true);
+        }
+
+        public void ResumeGame()
+        {
+            if (IsPaused) Time.timeScale = timeScaleBeforePause;
+            IsPaused = false;
+            if (MainMenu.Instance && MainMenu.Instance.InGamePanel.PauseSubPanel)
+                MainMenu.Instance.InGamePanel.PauseSubPanel.SetActive(false);
+        }
+
+        public void ReturnToMainMenu()
+        {
+            if (!IsGameRunning) return;
+            ResumeGame();
+            IsGameRunning = false;
+            StopAllCoroutines();
+            gameLoop = null;
+            launcher.StopListenToInput();
+            MainMenu.Instance.InGamePanel.CloseSubPanels();
+            ResetAllController();
+            ClearAllBricks();
+            ClearChildren(BallsParent);
+            ClearChildren(VisualEffectsParent);
+            grid = null;
+            level = 1;
+            state = State.GameOver;
+            CurrentResult = new();
+            MainMenu.Instance.Goto(MainMenu.CurrentPanel.Lobby);
+        }
+
+        private static void ClearChildren(Transform parent)
+        {
+            if (!parent) return;
+            foreach (Transform child in parent)
+            {
+                child.gameObject.SetActive(false);
+                Destroy(child.gameObject);
+            }
+        }
+
+        private void OnDisable()
+        {
+            ResumeGame();
+        }
         public GameResultPanel.GameResult CurrentResult;
         [Header("Configs")]
         public BallSystemConfig BallConfig;
@@ -69,7 +127,7 @@ namespace BallzGame.Managers
         [SerializeField] private FloatText freeDrawFloatText;
         public Transform FreeDrawFloatTextPosition;
 
-        public bool CanClaimFreeDraw => state == State.WaitForLaunchInput &&
+        public bool CanClaimFreeDraw => IsGameRunning && !IsPaused && state == State.WaitForLaunchInput &&
             !launcher.HasInput && !MainMenu.Instance.InGamePanel.IsShowingGainBalls;
 
           [SerializeField] private GameObject healEffect;
@@ -87,6 +145,9 @@ namespace BallzGame.Managers
         }
         public void NewGame()
         {
+            ResumeGame();
+            MainMenu.Instance.InGamePanel.CloseSubPanels();
+            IsGameRunning = true;
             if (gameLoop!=null)
             {
                 StopCoroutine(gameLoop);
@@ -118,6 +179,7 @@ namespace BallzGame.Managers
             MainMenu.Instance.InGamePanel.WaveDisplay.text = "Wave:   "+level.ToString();
             while (true)
             {
+                yield return new WaitUntil(() => !IsPaused);
                 switch (state)
                 {
                     case State.WaitForLaunchInput:
@@ -182,6 +244,7 @@ namespace BallzGame.Managers
         {
             if (state == State.GameOver)
             {
+                IsGameRunning = false;
                 CurrentResult.BallsCount  = launcher.BallCount;
                 level = 1;
                 ClearAllBricks();
