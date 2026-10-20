@@ -41,9 +41,22 @@ namespace BallzGame.Managers
         [SerializeField]private int height = 15;
         [SerializeField]private int crisisInterval=15;
         [SerializeField]private int FirstCrisis=5;
+        public int FirstCrisisWave => FirstCrisis;
+        public int CrisisInterval => crisisInterval;
 
         [Header("current game status")]
         private Brick[,] grid;
+
+        public Brick GetBrickAt(int x, int y)
+        {
+            if (grid == null || x < 0 || y < 0 ||
+                x >= grid.GetLength(0) || y >= grid.GetLength(1))
+                return null;
+
+            Brick brick = grid[x, y];
+            return brick && brick.Hp > 0 ? brick : null;
+        }
+
         public int level = 1;
         private State state;
         public GameResultPanel.GameResult CurrentResult;
@@ -111,6 +124,14 @@ namespace BallzGame.Managers
                 {
                     case State.WaitForFeverOrLaunchInput:
                         shopController.RefreshShopItems();
+                        int crisisRewards = 0;
+                        while (CrisisManager && CrisisManager.TryConsumeCompletedReward())
+                            crisisRewards++;
+                        if (crisisRewards > 0)
+                        {
+                            shopController.OpenCrisisReward(crisisRewards);
+                            yield return new WaitUntil(() => !MainMenu.Instance.InGamePanel.ShopSubPanel.activeSelf);
+                        }
                         launcher.WaitForInput();
                         feverController.WaitForInput();
                         shopController.UpdateFreeDrawUI();
@@ -134,7 +155,6 @@ namespace BallzGame.Managers
                         state = State.TrySpawnRow;
                         level++;
                         MainMenu.Instance.InGamePanel.WaveDisplay.text = "Wave:   "+level.ToString();
-                        MainMenu.Instance.InGamePanel.WaveDisplay.color = (level+(crisisInterval-FirstCrisis))  % crisisInterval == 0 ? Color.red : Color.white;
                         break;
                     case State.Fever:
                         NotifyBricksMiniGameStart();
@@ -192,6 +212,9 @@ namespace BallzGame.Managers
 
         private void ResetAllController()
         {
+            if (CrisisManager)
+                CrisisManager.ClearMarks();
+            spawner.NextRowIsCrisis = false;
             inventory.Clear();
             feverController.Reset();
             launcher.Reset();
@@ -234,7 +257,10 @@ namespace BallzGame.Managers
 
         void SpawnTopRow()
         {
+            bool isCrisisRow = spawner.NextRowIsCrisis;
             var bricks = spawner.SpawnRow(level, width);
+            spawner.NextRowIsCrisis = false;
+            MainMenu.Instance.InGamePanel.SetCrisisWaveActive(isCrisisRow);
 
             for (int x = 0; x < width; x++)
             {
@@ -244,9 +270,12 @@ namespace BallzGame.Managers
 
                 if (brick != null)
                 {
+                    brick.GridPosition = new Vector2Int(x, 0);
                     brick.transform.position = new Vector3(x, 0, 0);
                 }
             }
+            if (isCrisisRow && CrisisManager)
+                CrisisManager.RegisterRow(bricks);
         }
 
 
@@ -277,9 +306,20 @@ namespace BallzGame.Managers
                     grid[x, y + 1] = brick;
                     grid[x, y] = null;
 
+                    brick.GridPosition = new Vector2Int(x, y + 1);
                     brick.transform.position =
                         new Vector3(x, -(y + 1), 0);
-                    brick.OnRowMoved();
+                }
+            }
+
+            // Notify only after every cell and position has reached its final state.
+            for (int y = height - 1; y >= 1; y--)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    Brick brick = GetBrickAt(x, y);
+                    if (brick)
+                        brick.OnRowMoved();
                 }
             }
 

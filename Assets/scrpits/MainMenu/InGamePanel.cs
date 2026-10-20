@@ -22,15 +22,33 @@ namespace GameMeta
 		public GameObject ShopSubPanel;
 
 		public Button DieSubPanelConfirmButton;
-		public Button ShopOnePull;
-		public Button ShopMultiplePull;
 		public Button ShopSubPanelExit;
-		public Button GainBallConfirm;
+          public Button ShopSubPanelExit2;
+          public Button GainBallConfirm;
 
 		[Header("Free six-ball draws")]
 		public Button FreeDrawButton;
 		public TMP_Text FreeDrawCountText;
 		public TMP_Text LaunchesUntilFreeDrawText;
+
+		[Header("Next crisis progress")]
+		[Tooltip("Use an Image with Type = Filled for the progress bar.")]
+		[SerializeField] private Image crisisProgressImage;
+		[SerializeField] private TMP_Text crisisWaveText;
+
+		public void SetCrisisProgress(int currentWave, int nextWave, float progress)
+		{
+			if (crisisProgressImage)
+				crisisProgressImage.fillAmount = Mathf.Clamp01(progress);
+			if (crisisWaveText)
+				crisisWaveText.SetText("{0}/{1}", currentWave, nextWave);
+		}
+
+		public void SetCrisisWaveActive(bool active)
+		{
+			if (WaveDisplay)
+				WaveDisplay.color = active ? Color.red : Color.white;
+		}
 
 		public GameObject GainBallPanel;
 
@@ -41,6 +59,40 @@ namespace GameMeta
 		public	TMP_Text WaveDisplay;
 		public BallsDisplay BallsDisplay;
 		public Button RefreshShopItem;
+		[SerializeField] private TMP_Text refreshPriceNumberText;
+		private TMP_Text cachedRefreshPriceText;
+		private Color normalRefreshPriceColor;
+
+		public void UpdateCrisisRewardShop(bool choosingFreeItem)
+		{
+			var shop = GameManager.Instance.shopController;
+			if (ShopSubPanelExit)
+				ShopSubPanelExit.interactable = shop.RemainingCrisisChoices == 0;
+			if (ShopSubPanelExit2)
+				ShopSubPanelExit2.interactable = shop.RemainingCrisisChoices == 0;
+			if (RefreshShopItem)
+				RefreshShopItem.interactable = !choosingFreeItem;
+			RefreshShopPrices();
+		}
+
+		public void RefreshShopPrices()
+		{
+			var shop = GameManager.Instance.shopController;
+			int refreshCost = shop.HasCrisisFreeChoice || shop.FreeItemRefreshes > 0 ? 0 : shop.refreshPrice;
+			if (refreshPriceNumberText)
+			{
+				if (cachedRefreshPriceText != refreshPriceNumberText)
+				{
+					cachedRefreshPriceText = refreshPriceNumberText;
+					normalRefreshPriceColor = refreshPriceNumberText.color;
+				}
+				refreshPriceNumberText.text = refreshCost.ToString();
+				refreshPriceNumberText.color = shop.CurrentCoin < refreshCost ? Color.red : normalRefreshPriceColor;
+			}
+			foreach (var card in GainItemCards)
+				if (card && card.gameObject.activeSelf)
+					card.RefreshPrice();
+		}
 		public TMP_Text CurrentScore;
 		[SerializeField]private EventTrigger shopButton;
 		[SerializeField]private GameObject ballzGameUI;
@@ -56,7 +108,12 @@ namespace GameMeta
 					ShopSubPanel.SetActive(false);
 				}
 			);
-			GainBallConfirm.onClick.AddListener(() =>
+               ShopSubPanelExit2.onClick.AddListener(() =>
+               {
+                    ShopSubPanel.SetActive(false);
+               }
+                              );
+               GainBallConfirm.onClick.AddListener(() =>
 				{
 					GainBallPanel.SetActive(false);
 					GameManager.Instance.shopController.UpdateFreeDrawUI();
@@ -105,7 +162,6 @@ namespace GameMeta
 				// 没有触发长按，才算短按
 				if (!longPressTriggered)
 				{
-					ShowCurrentBall();
 					ShopSubPanel.SetActive(true);
 				}
 			});
@@ -138,10 +194,6 @@ namespace GameMeta
 			}
 		}
 
-		public void ShowCurrentBall()
-		{
-			BallsDisplay.ShowBalls(GameManager.Instance.launcher.ballDatas);
-		}
 		public void RefreshItemShop(List<ShopItem> shopItems)
 		{
 			// 全部隐藏
@@ -164,17 +216,12 @@ namespace GameMeta
 
 				card.button.onClick.AddListener(() =>
 				{
-					// 扣钱（你可以自己加价格判断）
 					var shop = GameManager.Instance.shopController;
 
-					if (shop.CurrentCoin < data.Price || !data.Spawnable())
+					if (!shop.TryBuyItem(data))
 						return;
-
-					shop.CurrentCoin -= data.Price;
-
-					// 加入背包
-					GameManager.Instance.inventory.AddItemToInventory(data);
 					card.button.interactable = false;
+					card.Refresh();
 				});
 			}
 		}

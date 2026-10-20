@@ -46,21 +46,16 @@ namespace BallzGame.Bricks.SpecialBricks
 
         public IEnumerator Heal()
         {
-            triggers.gameObject.SetActive(true);
-            yield return new WaitForFixedUpdate();
             AddHP();
-            triggers.gameObject.SetActive(false);
+            yield break;
         }
 
 
 
         void AddHP()
         {
-            foreach (var VARIABLE in triggers.Colliders)
+            foreach (var script in GetSurroundingBricks())
             {
-                if(!VARIABLE)
-                    return;
-                var script = VARIABLE.GetComponent<Brick>();
                 if (script)
                 {
                     GameManager.DoHealText(script.transform.position, HealAmount);

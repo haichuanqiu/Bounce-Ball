@@ -22,9 +22,32 @@ namespace BallzGame.Managers.Shop
           public TMP_Text slotdotText;
 		public Sprite slotdotFilled;
 		public Sprite slotdotEmpty;
+          ShopItem myData;
+          private Color normalPriceColor;
+          private TMP_Text cachedPriceText;
+          public void RefreshPrice()
+          {
+               if (PriceText && myData)
+               {
+                    if (cachedPriceText != PriceText)
+                    {
+                         cachedPriceText = PriceText;
+                         normalPriceColor = PriceText.color;
+                    }
+                    var shop = GameManager.Instance.shopController;
+                    int price = shop.GetItemPrice(myData);
+                    PriceText.text = price.ToString();
+                    PriceText.color = shop.CurrentCoin < price ? Color.red : normalPriceColor;
+               }
+          }
+          public void Refresh(){
+               SetData(myData);
+          }
           public void SetData(ShopItem data)
 		{
-			if (NameText)
+               myData=data;
+
+               if (NameText)
 			{
 				NameText.text = data.Name;
 			}
@@ -40,7 +63,7 @@ namespace BallzGame.Managers.Shop
 			}
 			if (PriceText)
 			{
-				PriceText.text = data.Price.ToString();
+				RefreshPrice();
 			}
 
 			if (Count)

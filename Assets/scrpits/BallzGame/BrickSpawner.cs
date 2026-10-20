@@ -85,6 +85,7 @@ namespace BallzGame.Managers
         }
 
         public List<Brick> NextBricks;
+        public bool NextRowIsCrisis { get; set; }
         public List<int> NextBricksHP;
         public List<Brick> SpawnRow(int level, int width)
         {

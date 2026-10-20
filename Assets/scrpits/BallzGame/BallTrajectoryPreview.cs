@@ -12,6 +12,8 @@ public class BallTrajectoryPreview : MonoBehaviour
 
     [Header("Trajectory")]
     [SerializeField] private float maxDistance = 100f;
+    [Tooltip("World-space ball radius. A ball with diameter 0.5 has radius 0.25.")]
+    [SerializeField, Min(0.001f)] private float ballRadius = 0.25f;
     [SerializeField] private float skin = 0.01f;
     [SerializeField] private int bounceTime;
 
@@ -374,11 +376,11 @@ public class BallTrajectoryPreview : MonoBehaviour
 
 
             // -------------------------------------------------
-            // 画到碰撞点
+            // Draw the ball center at impact, rather than the surface contact point.
             // -------------------------------------------------
 
             points.Add(
-                hit.point
+                hit.centroid
             );
 
 
@@ -415,12 +417,12 @@ public class BallTrajectoryPreview : MonoBehaviour
 
             // -------------------------------------------------
             // 从碰撞点稍微偏移
-            // 防止下一次 Raycast 又检测到同一个 Collider
+            // Offset outward so the next circle cast starts clear of the surface.
             // -------------------------------------------------
 
             currentPosition =
-                hit.point +
-                direction * skin;
+                hit.centroid +
+                hit.normal * Mathf.Max(skin, 0.001f);
         }
 
 
@@ -451,8 +453,9 @@ public class BallTrajectoryPreview : MonoBehaviour
         float distance)
     {
         RaycastHit2D[] hits =
-            Physics2D.RaycastAll(
+            Physics2D.CircleCastAll(
                 origin,
+                ballRadius,
                 direction,
                 distance
             );

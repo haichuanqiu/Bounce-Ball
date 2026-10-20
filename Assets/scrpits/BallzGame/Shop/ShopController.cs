@@ -18,15 +18,14 @@ namespace BallzGame.Managers.Shop
             get { return _currentCoin; }
             set
             {
-                MainMenu.Instance.InGamePanel.Coin.text = value.ToString();
                 _currentCoin = value;
-                UpdateGachaButton();
+                UpdateGoldTexts();
+                MainMenu.Instance.InGamePanel.RefreshShopPrices();
             }
         }
 
         [SerializeField] private int _currentCoin;
         [SerializeField, Min(0)] private int startingCoin = 0;
-        public Image fillImage;
 
         public void ResetCoins()
         {
@@ -40,7 +39,9 @@ namespace BallzGame.Managers.Shop
         public int Gacha6Price;
         public int Gacha1Price;
 
-        public TextMeshProUGUI GoldText;
+        // Keep the original reference so existing scenes retain their assignment.
+        [HideInInspector] public TextMeshProUGUI GoldText;
+        public List<TextMeshProUGUI> GoldTexts = new List<TextMeshProUGUI>();
 
         // 商店商品列表（带概率权重）
         public List<ShopItemProbability> Items;
@@ -49,6 +50,66 @@ namespace BallzGame.Managers.Shop
 
         private int totalGachaProbability;
         private int totalItemProbability;
+        public bool HasCrisisFreeChoice { get; private set; }
+        public int FreeItemRefreshes { get; private set; }
+        public int RemainingCrisisChoices { get; private set; }
+        private readonly HashSet<ShopItem> currentOffers = new HashSet<ShopItem>();
+        private readonly HashSet<ShopItem> purchasedOffers = new HashSet<ShopItem>();
+
+        public int GetItemPrice(ShopItem item) => HasCrisisFreeChoice ? 0 : item.Price;
+
+        public void OpenCrisisReward(int rewardCount = 1)
+        {
+            if (rewardCount <= 0)
+                return;
+            RemainingCrisisChoices += rewardCount;
+            HasCrisisFreeChoice = true;
+            RefreshShopItems();
+            if (currentOffers.Count == 0)
+            {
+                HasCrisisFreeChoice = false;
+                RemainingCrisisChoices = 0;
+            }
+            MainMenu.Instance.InGamePanel.ShopSubPanel.SetActive(true);
+            UpdateCrisisRewardUI();
+        }
+
+        public bool TryBuyItem(ShopItem item)
+        {
+            if (!item || !currentOffers.Contains(item) || purchasedOffers.Contains(item) || !item.Spawnable())
+                return false;
+            int price = GetItemPrice(item);
+            if (CurrentCoin < price)
+                return false;
+
+            bool freeChoice = HasCrisisFreeChoice;
+            purchasedOffers.Add(item);
+            HasCrisisFreeChoice = false;
+            if (freeChoice)
+            {
+                RemainingCrisisChoices--;
+                FreeItemRefreshes++;
+            }
+            CurrentCoin -= price;
+            GameManager.Instance.inventory.AddItemToInventory(item);
+            UpdateCrisisRewardUI();
+            return true;
+        }
+
+        private void UpdateCrisisRewardUI()
+        {
+            MainMenu.Instance.InGamePanel.UpdateCrisisRewardShop(HasCrisisFreeChoice);
+        }
+
+        public void ResetCrisisRewards()
+        {
+            HasCrisisFreeChoice = false;
+            RemainingCrisisChoices = 0;
+            FreeItemRefreshes = 0;
+            currentOffers.Clear();
+            purchasedOffers.Clear();
+            UpdateCrisisRewardUI();
+        }
 
         [SerializeField, Min(6)] private int launchesPerFreeDraw = 6;
         public int LaunchesPerFreeDraw => Mathf.Max(6, launchesPerFreeDraw);
@@ -58,6 +119,7 @@ namespace BallzGame.Managers.Shop
 
         public void ResetFreeDraws()
         {
+            ResetCrisisRewards();
             FreeDrawCount = 0;
             launchesSinceFreeDraw = 0;
             UpdateFreeDrawUI();
@@ -97,7 +159,6 @@ namespace BallzGame.Managers.Shop
                 panel.LaunchesUntilFreeDrawText.text =  LaunchesUntilFreeDraw.ToString();
             if (panel.FreeDrawButton != null)
                 panel.FreeDrawButton.interactable = FreeDrawCount > 0 && GameManager.Instance.CanClaimFreeDraw;
-            UpdateGachaButton();
         }
 
         private void Start()
@@ -107,10 +168,6 @@ namespace BallzGame.Managers.Shop
             NormalizedProbability();
 
             UpdateUI();
-
-
-            MainMenu.Instance.InGamePanel.ShopMultiplePull.onClick.AddListener(DoGacha6);
-            MainMenu.Instance.InGamePanel.ShopOnePull.onClick.AddListener(DoGacha1);
 
         }
 
@@ -208,6 +265,8 @@ namespace BallzGame.Managers.Shop
         /// </summary>
         public void RefreshShopItems()
         {
+            currentOffers.Clear();
+            purchasedOffers.Clear();
             List<ShopItem> result = new List<ShopItem>();
 
             // 只保留当前可以 Spawn 的物品
@@ -267,6 +326,7 @@ namespace BallzGame.Managers.Shop
 
                 // 添加抽中的 Item
                 result.Add(tempList[selectedIndex].Item);
+                currentOffers.Add(tempList[selectedIndex].Item);
 
                 // 移除已经抽中的物品，避免重复
                 int removedProb = tempList[selectedIndex].Probability;
@@ -290,17 +350,25 @@ namespace BallzGame.Managers.Shop
             UpdateUI();
         }
 
-        public void UpdateGachaButton()
-        {
-            MainMenu.Instance.InGamePanel.ShopMultiplePull.interactable = FreeDrawCount > 0
-                ? GameManager.Instance.CanClaimFreeDraw
-                : CurrentCoin >= Gacha6Price;
-            MainMenu.Instance.InGamePanel.ShopOnePull.interactable = CurrentCoin >= Gacha1Price;
-        }
 
         [SerializeField]public int refreshPrice;
         public void PlayerRefreshItem()
         {
+            if (HasCrisisFreeChoice)
+                return;
+            if (FreeItemRefreshes > 0)
+            {
+                FreeItemRefreshes--;
+                HasCrisisFreeChoice = RemainingCrisisChoices > 0;
+                RefreshShopItems();
+                if (currentOffers.Count == 0)
+                {
+                    HasCrisisFreeChoice = false;
+                    RemainingCrisisChoices = 0;
+                }
+                UpdateCrisisRewardUI();
+                return;
+            }
             if (CurrentCoin < refreshPrice)
             {
                 return;
@@ -402,14 +470,24 @@ namespace BallzGame.Managers.Shop
         private void UpdateUI()
         {
             UpdateFreeDrawUI();
-            if (GoldText != null)
-                GoldText.text = CurrentCoin.ToString();
+            UpdateGoldTexts();
 
-            if (fillImage != null)
+        }
+
+        private void UpdateGoldTexts()
+        {
+            string amount = CurrentCoin.ToString();
+            if (GoldText != null)
+                GoldText.text = amount;
+
+            if (GoldTexts == null)
+                return;
+
+            foreach (var goldText in GoldTexts)
             {
-                fillImage.fillAmount = CurrentCoin / (float)Gacha6Price;
+                if (goldText != null)
+                    goldText.text = amount;
             }
-            MainMenu.Instance.InGamePanel.ShowCurrentBall();
         }
     }
 

@@ -264,6 +264,10 @@ PrefabInstance:
       propertyPath: colors.m_NumColorKeys
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 7284382004533748282, guid: d92a5665570f7264b9ea4f8bf58fe884, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7547896871745341088, guid: d92a5665570f7264b9ea4f8bf58fe884, type: 3}
       propertyPath: m_IsActive
       value: 1

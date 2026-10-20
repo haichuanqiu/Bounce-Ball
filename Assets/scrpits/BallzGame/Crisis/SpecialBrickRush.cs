@@ -28,6 +28,17 @@ public class SpecialBrickRush : CrisisBehaviour
 
 	[SerializeField]private int maxWave;
 	private int currentWave = 0;
+	public override int RowCount => Mathf.Max(1, maxWave);
+	public override void CancelCrisis()
+	{
+		var manager = GameManager.Instance;
+		if (manager)
+		{
+			manager.BeforeRowSpawn.RemoveListener(DoSpecialBrickRush);
+			manager.BeforeRowSpawn.RemoveListener(DoBigBrickRush);
+		}
+		currentWave = 0;
+	}
 	public void DoSpecialBrickRush()
 	{
 		currentWave++;
@@ -67,6 +78,7 @@ public class SpecialBrickRush : CrisisBehaviour
 		int width = GameManager.Instance.width;
 
 		spawner.NextBricks.Clear();
+		spawner.NextRowIsCrisis = true;
 
 		for (int i = 0; i < width; i++)
 		{
@@ -117,6 +129,7 @@ public class SpecialBrickRush : CrisisBehaviour
 		int width = GameManager.Instance.width;
 
 		spawner.NextBricks.Clear();
+		spawner.NextRowIsCrisis = true;
 
 		for (int i = 0; i < width; i++)
 		{

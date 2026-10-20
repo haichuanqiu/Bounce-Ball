@@ -92,16 +92,11 @@ public class BlackHoleBrick : SpecialBrick
           // 开启前闪烁
           yield return StartCoroutine(FlashBlackhole());
 
-          // 开启物理触发器
-          if (physicsTrigger != null)
-               physicsTrigger.gameObject.SetActive(true);
 
           // 黑洞图像保持显示
           if (BlackholeSprite != null)
                BlackholeSprite.gameObject.SetActive(true);
 
-          // 等待物理系统更新
-          yield return new WaitForFixedUpdate();
 
           // 添加禁用效果
           AddDefense();
@@ -137,12 +132,8 @@ public class BlackHoleBrick : SpecialBrick
 
      void AddDefense()
      {
-          foreach (var collider in triggers.Colliders)
+          foreach (var brick in GetSurroundingBricks())
           {
-               if (!collider)
-                    continue;
-
-               var brick = collider.GetComponent<Brick>();
 
                if (brick && !SurroundingBricks.Contains(brick))
                {

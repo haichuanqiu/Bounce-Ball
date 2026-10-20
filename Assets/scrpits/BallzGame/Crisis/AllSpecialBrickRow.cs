@@ -33,6 +33,7 @@ public class AllSpecialBrickRow : CrisisBehaviour
 		int width = GameManager.Instance.width;
 
 		spawner.NextBricks.Clear();
+		spawner.NextRowIsCrisis = true;
 
 		for (int i = 0; i < width; i++)
 		{

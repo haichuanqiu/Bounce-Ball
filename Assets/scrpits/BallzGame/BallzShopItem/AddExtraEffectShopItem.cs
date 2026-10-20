@@ -7,7 +7,6 @@ namespace BallzGame.InventorySystem.ShopItems
 	public class AddExtraEffectShopItem: ShopItem
 	{
 		private BallExtraDamage ballExtraDamageController;
-		[SerializeField] private int maxAmount;
 		[SerializeField] private BallExtraDamage.EffectType target;
 		[SerializeField] private int increment;
 

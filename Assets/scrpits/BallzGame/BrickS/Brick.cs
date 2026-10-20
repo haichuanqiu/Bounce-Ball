@@ -12,6 +12,7 @@ namespace BallzGame.Bricks
     public class Brick : MonoBehaviour
     {
         public int Hp = 3;
+        public Vector2Int GridPosition { get; internal set; }
 
         public Action OnDestroy;
         public int DefencePoint;

@@ -92,15 +92,10 @@ namespace BallzGame.Bricks.SpecialBricks
                     // 开启前闪烁
                     yield return StartCoroutine(FlashShield());
 
-                    // 开启触发器
-                    if (physicsTrigger != null)
-                         physicsTrigger.SetActive(true);
 
                     if (shieldIcon != null)
                          shieldIcon.gameObject.SetActive(true);
 
-                    // 等待物理系统更新
-                    yield return new WaitForFixedUpdate();
 
                     AddDefense();
 
@@ -134,12 +129,8 @@ namespace BallzGame.Bricks.SpecialBricks
 
                void AddDefense()
                {
-                    foreach (var collider in triggers.Colliders)
+                    foreach (var brick in GetSurroundingBricks())
                     {
-                         if (!collider)
-                              continue;
-
-                         var brick = collider.GetComponent<Brick>();
 
                          if (brick && !SurroundingBricks.Contains(brick))
                          {
