@@ -429,6 +429,36 @@ namespace BallzGame.Managers.Shop
             return true;
         }
 
+        public bool GrantBallsByTypes(params BallExtraDamage.BallType[] types)
+        {
+            if (types == null || types.Length == 0 || GachaBalls == null)
+                return false;
+
+            List<Ball> resultBalls = new List<Ball>(types.Length);
+            foreach (BallExtraDamage.BallType type in types)
+            {
+                Ball ball = null;
+                foreach (var entry in GachaBalls)
+                {
+                    if (entry != null && entry.Ball != null && entry.Ball.Type == type)
+                    {
+                        ball = entry.Ball;
+                        break;
+                    }
+                }
+
+                if (ball == null)
+                {
+                    Debug.LogError($"Cannot grant fixed ball set: no gacha ball is configured for {type}.");
+                    return false;
+                }
+                resultBalls.Add(ball);
+            }
+
+            GrantBalls(resultBalls);
+            return true;
+        }
+
         private List<Ball> RollBalls(int count)
         {
             if (count <= 0 || GachaBalls == null || GachaBalls.Count == 0)

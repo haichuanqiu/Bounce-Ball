@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using BallzGame.Balls;
 using BallzGame.Bricks;
 using BallzGame.Control;
@@ -82,10 +83,17 @@ namespace BallzGame.Managers
             ClearAllBricks();
         }
 
+        public List<Brick> SpawnScenarioTopRow()
+        {
+            BeforeRowSpawn.Invoke();
+            return SpawnTopRow();
+        }
+
         public int level = 1;
         private State state;
         public bool IsPaused { get; private set; }
         public bool IsGameRunning { get; private set; }
+        public bool IsWaitingForLaunchInput => state == State.WaitForLaunchInput && !launcher.HasInput;
         private float timeScaleBeforePause = 1f;
 
         public void PauseGame()
@@ -172,12 +180,50 @@ namespace BallzGame.Managers
         }
         public void NewGame()
         {
+            InitializeGameSession();
+            gameLoop=StartCoroutine(GameLoop(true));
+        }
+
+        public void BeginTutorialSession()
+        {
+            InitializeGameSession();
+        }
+
+        public void ResumeNormalGameAfterScenario()
+        {
+            if (!IsGameRunning || gameLoop != null)
+                return;
+            state = State.TrySpawnRow;
+            gameLoop = StartCoroutine(GameLoop(false));
+        }
+
+        public IEnumerator RunScenarioLaunch(Vector2? forcedTarget, bool countTowardsProgress)
+        {
+            state = State.WaitForLaunchInput;
+            launcher.SetForcedLaunchTarget(forcedTarget);
+            launcher.WaitForInput();
+            shopController.UpdateFreeDrawUI();
+            yield return new WaitUntil(() => launcher.HasInput || !IsGameRunning);
+            if (!IsGameRunning)
+                yield break;
+
+            state = State.ShootBall;
+            launcher.StopListenToInput();
+            yield return StartCoroutine(launcher.Launch());
+            shopController.OnLaunchCompleted(countTowardsProgress);
+            state = State.WaitForLaunchInput;
+            shopController.UpdateFreeDrawUI();
+        }
+
+        private void InitializeGameSession()
+        {
             ResumeGame();
             MainMenu.Instance.InGamePanel.CloseSubPanels();
             IsGameRunning = true;
             if (gameLoop!=null)
             {
                 StopCoroutine(gameLoop);
+                gameLoop = null;
             }
             ResetAllController();
             level = 1;
@@ -189,18 +235,20 @@ namespace BallzGame.Managers
             CurrentResult=new();
             grid = new Brick[width, height];
             MainMenu.Instance.InGamePanel.CurrentScore.text = "Score:  "+ CurrentResult.Points.ToString();
-            gameLoop=StartCoroutine(GameLoop());
         }
 
         private Coroutine gameLoop;
-        IEnumerator GameLoop()
+        IEnumerator GameLoop(bool grantOpeningReward)
         {
             // Confirm the opening reward before spawning bricks or accepting aim input.
-            if (!shopController.GrantRandomBalls(6))
-                yield break;
+            if (grantOpeningReward)
+            {
+                if (!shopController.GrantRandomBalls(6))
+                    yield break;
 
-            yield return new WaitUntil(() => !MainMenu.Instance.InGamePanel.IsShowingGainBalls);
-            yield return null;
+                yield return new WaitUntil(() => !MainMenu.Instance.InGamePanel.IsShowingGainBalls);
+                yield return null;
+            }
 
             state = State.TrySpawnRow;
             MainMenu.Instance.InGamePanel.WaveDisplay.text = "Wave:   "+level.ToString();
@@ -257,6 +305,7 @@ namespace BallzGame.Managers
                     case State.GameOver:
                         shopController.UpdateFreeDrawUI();
                         MainMenu.Instance.InGamePanel.DieSubPanel.SetActive(true);
+                        gameLoop = null;
                         yield break;
 
                 }
@@ -327,7 +376,7 @@ namespace BallzGame.Managers
         }
 
 
-        void SpawnTopRow()
+        List<Brick> SpawnTopRow()
         {
             bool isCrisisRow = spawner.NextRowIsCrisis;
             var bricks = spawner.SpawnRow(level, width);
@@ -348,6 +397,7 @@ namespace BallzGame.Managers
             }
             if (isCrisisRow && CrisisManager)
                 CrisisManager.RegisterRow(bricks);
+            return bricks;
         }
 
 

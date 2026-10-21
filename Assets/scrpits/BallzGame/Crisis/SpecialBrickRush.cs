@@ -10,10 +10,12 @@ public class SpecialBrickRush : CrisisBehaviour
 	[SerializeField] private Brick blackholeBrick;
 	[SerializeField] private Brick angleBrick;
 	[SerializeField] private Brick treeBrick;
+	private int? bigBrickHpOverride;
 
 	public override void DoCrisis()
 	{
 		Debug.Log("DoCrisis");
+		bigBrickHpOverride = null;
 
 		if (Random.value < 0.5f)
 		{
@@ -24,6 +26,13 @@ public class SpecialBrickRush : CrisisBehaviour
 			GameManager.Instance.BeforeRowSpawn.AddListener(DoBigBrickRush);
 		}
 		currentWave = 0;
+	}
+
+	public void DoBigBrickCrisis(int hitPoints)
+	{
+		CancelCrisis();
+		bigBrickHpOverride = Mathf.Max(1, hitPoints);
+		GameManager.Instance.BeforeRowSpawn.AddListener(DoBigBrickRush);
 	}
 
 	[SerializeField]private int maxWave;
@@ -38,6 +47,7 @@ public class SpecialBrickRush : CrisisBehaviour
 			manager.BeforeRowSpawn.RemoveListener(DoBigBrickRush);
 		}
 		currentWave = 0;
+		bigBrickHpOverride = null;
 	}
 	public void DoSpecialBrickRush()
 	{
@@ -61,6 +71,7 @@ public class SpecialBrickRush : CrisisBehaviour
 			Debug.Log("Stop");
 			currentWave = 0;
 			GameManager.Instance.BeforeRowSpawn.RemoveListener(DoBigBrickRush);
+			bigBrickHpOverride = null;
 		}
 	}
 
@@ -135,8 +146,9 @@ public class SpecialBrickRush : CrisisBehaviour
 		{
 			spawner.NextBricks.Add(bigBrick);
 			// Crisis bricks must not fall below the normal HP curve at later waves.
-			spawner.NextBricksHP.Add(Mathf.Max(GameManager.Instance.level * 2,
-				spawner.GetRandomHPByLevel(GameManager.Instance.level)));
+			int hitPoints = bigBrickHpOverride ?? Mathf.Max(GameManager.Instance.level * 2,
+				spawner.GetRandomHPByLevel(GameManager.Instance.level));
+			spawner.NextBricksHP.Add(hitPoints);
 		}
 	}
 

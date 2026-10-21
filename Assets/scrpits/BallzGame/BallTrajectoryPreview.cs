@@ -311,8 +311,9 @@ public class BallTrajectoryPreview : MonoBehaviour
                 );
 
 
-        inputTarget =
-            worldPosition;
+        inputTarget = launcher != null && launcher.ForcedLaunchTarget.HasValue
+            ? launcher.ForcedLaunchTarget.Value
+            : (Vector2)worldPosition;
     }
 
 

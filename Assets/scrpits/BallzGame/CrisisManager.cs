@@ -179,12 +179,38 @@ namespace BallzGame.Managers
         {
 
         }
-        public void DoCrisis()
+        public int DoCrisis()
         {
             var index=Random.Range(0, Crisis.Count);
             spawningEncounter = new Encounter { RowsRemaining = Crisis[index].RowCount };
             encounters.Add(spawningEncounter);
             Crisis[index].DoCrisis();
+            return Mathf.Max(1, Crisis[index].RowCount);
+        }
+
+        public int DoTutorialBigBrickCrisis()
+        {
+            SpecialBrickRush bigBrickCrisis = null;
+            foreach (var crisisBehaviour in Crisis)
+            {
+                if (crisisBehaviour is SpecialBrickRush specialBrickRush)
+                {
+                    bigBrickCrisis = specialBrickRush;
+                    break;
+                }
+            }
+
+            if (!bigBrickCrisis)
+            {
+                Debug.LogWarning("Tutorial: no SpecialBrickRush is configured; falling back to a random Crisis.");
+                return DoCrisis();
+            }
+
+            int rowCount = Mathf.Max(1, bigBrickCrisis.RowCount);
+            spawningEncounter = new Encounter { RowsRemaining = rowCount };
+            encounters.Add(spawningEncounter);
+            bigBrickCrisis.DoBigBrickCrisis(3);
+            return rowCount;
         }
     }
 
